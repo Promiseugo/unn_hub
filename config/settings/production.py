@@ -1,6 +1,6 @@
 """
 Production settings.
-All secrets must come from environment variables — never hardcode here.
+All secrets must come from environment variables.
 Set DJANGO_SETTINGS_MODULE=config.settings.production on your server.
 """
 
@@ -12,22 +12,25 @@ from decouple import config, Csv
 # ─────────────────────────────────────────────
 DEBUG = False
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
-
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 # HTTPS enforcement
 SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_SECONDS = 31536000          # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = 'DENY'
+
+# Secure cookies (HTTPS only)
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Admin URL — obscured in production
+# Change 'secret-admin-url/' to something only you know
+ADMIN_URL = config('ADMIN_URL', default='admin/')
 
 
 # ─────────────────────────────────────────────
-# DATABASE — PostgreSQL required in production
+# DATABASE
 # ─────────────────────────────────────────────
 DATABASES = {
     'default': {
@@ -37,14 +40,16 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
-        'CONN_MAX_AGE': 60,     # Keep connections alive for 60s
+        'CONN_MAX_AGE': 60,
+        'OPTIONS': {
+            'sslmode': 'require',           # Encrypt DB connection
+        },
     }
 }
 
 
 # ─────────────────────────────────────────────
-# EMAIL — Replace with real SMTP in production
-# e.g. SendGrid, Mailgun, or Gmail SMTP
+# EMAIL
 # ─────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -52,11 +57,11 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unnhub.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unitrax.com')
 
 
 # ─────────────────────────────────────────────
-# MEDIA — AWS S3 or local fallback
+# MEDIA — S3 or local
 # ─────────────────────────────────────────────
 USE_S3 = config('USE_S3', default=False, cast=bool)
 
@@ -69,3 +74,10 @@ if USE_S3:
     AWS_DEFAULT_ACL = 'public-read'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+
+
+# ─────────────────────────────────────────────
+# AXES — stricter in production
+# ─────────────────────────────────────────────
+AXES_FAILURE_LIMIT = 3              # Only 3 attempts in production
+AXES_COOLOFF_TIME = 2               # 2 hour lockout
