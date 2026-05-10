@@ -1,0 +1,277 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  /* ── Login page: full-screen centred layout ── */
+  html, body {
+    background: #0d0d0d !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+  }
+
+  /* Hide everything except the login form */
+  #header,
+  #nav-sidebar,
+  .toggle-nav-sidebar,
+  #footer,
+  .breadcrumbs,
+  #toolbar { display: none !important; }
+
+  /* Hide Django 5 dark mode toggle */
+  .theme-toggle { display: none !important; }
+
+  /* Make the outer container fill viewport and centre */
+  #container {
+    min-height: 100vh !important;
+    width: 100vw !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #0d0d0d !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* The main content area — full width, centred */
+  #main, #content, #content-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Login box */
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Logo */
+  .admin-login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    text-decoration: none;
+  }
+
+  .admin-login-logo-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-login-logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    color: #f0f0f0;
+  }
+
+  .admin-login-logo-text span { color: #c9a84c; }
+
+  .admin-login-logo-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #666;
+    margin-left: 6px;
+  }
+
+  /* Heading */
+  .login-heading {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+    color: #f0f0f0;
+    margin-bottom: 4px;
+  }
+
+  .login-sub {
+    text-align: center;
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Card */
+  .login-card {
+    background: #161616;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Override Django's form styling */
+  #login-form .form-row {
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  #login-form label {
+    display: block !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #888 !important;
+    margin-bottom: 6px !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  #login-form input[type=text],
+  #login-form input[type=email],
+  #login-form input[type=password] {
+    width: 100% !important;
+    background: #1e1e1e !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: #f0f0f0 !important;
+    border-radius: 10px !important;
+    padding: 11px 14px !important;
+    font-size: 0.9rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    transition: border-color 0.2s !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+  }
+
+  #login-form input:focus {
+    border-color: #c9a84c !important;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important;
+  }
+
+  #login-form input[type=submit] {
+    width: 100% !important;
+    background: #c9a84c !important;
+    color: #0d0d0d !important;
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    padding: 13px !important;
+    border-radius: 10px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+    margin-top: 0.5rem !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  #login-form input[type=submit]:hover {
+    background: #e8c96a !important;
+  }
+
+  .login-footer {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #555;
+    margin-top: 1rem;
+  }
+
+  /* Error messages */
+  .errornote {
+    background: rgba(229,62,62,0.08) !important;
+    border: 1px solid rgba(229,62,62,0.25) !important;
+    color: #fc8181 !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  ul.errorlist {
+    background: rgba(229,62,62,0.08) !important;
+    border: 1px solid rgba(229,62,62,0.25) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    margin-bottom: 1rem !important;
+    list-style: none !important;
+  }
+
+  ul.errorlist li {
+    color: #fc8181 !important;
+    font-size: 0.85rem !important;
+    padding: 2px 0 !important;
+  }
+
+  /* Hide Django's default h1 */
+  #content h1 { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div class="login-box">
+
+  <!-- Logo -->
+  <div class="admin-login-logo">
+    <div class="admin-login-logo-icon">
+      <img src="{% static 'images/ux_logo.png' %}" style="width:26px;height:26px;object-fit:contain;" alt="UniTraX">
+    </div>
+    <div>
+      <div class="admin-login-logo-text">UniTra<span>X</span><span class="admin-login-logo-badge">Admin</span></div>
+    </div>
+  </div>
+
+  <h1 class="login-heading">Admin Access</h1>
+  <p class="login-sub">Sign in with your superuser credentials</p>
+
+  <div class="login-card">
+    {% if form.errors %}
+      <ul class="errorlist">
+        <li>{% trans "Please enter the correct email and password." %}</li>
+      </ul>
+    {% endif %}
+
+    {% if error_message %}
+      <p class="errornote">{{ error_message }}</p>
+    {% endif %}
+
+    <form action="{{ app_path }}" method="post" id="login-form">
+      {% csrf_token %}
+
+      <div class="form-row">
+        <label for="id_username">Email Address</label>
+        <input type="email" name="username" id="id_username"
+               placeholder="admin@unnhub.com"
+               autocomplete="email" autofocus required>
+      </div>
+
+      <div class="form-row">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password"
+               placeholder="????????"
+               autocomplete="current-password" required>
+      </div>
+
+      <input type="hidden" name="next" value="{{ next }}">
+      <input type="submit" value="Sign In">
+    </form>
+  </div>
+
+  <p class="login-footer">
+    UniTraX · Admin Panel
+  </p>
+
+</div>
+{% endblock %}

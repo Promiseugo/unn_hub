@@ -1,0 +1,518 @@
+{% comment %}
+  ══════════════════════════════════════════════════════
+  UniTraX — Carousel Image Uploader Component
+  Usage:
+    {% include 'components/carousel_upload.html' with uploader_id="listing" %}
+    {% include 'components/carousel_upload.html' with uploader_id="rental" %}
+
+  The file input is always name="images" to match the existing view logic.
+  ══════════════════════════════════════════════════════
+{% endcomment %}
+
+<style>
+/* ── Only injected once (guard via class already on body) ── */
+.uc-wrap {
+  width: 100%;
+  position: relative;
+}
+
+/* ── Drop Zone ─────────────────────────────────────────── */
+.uc-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.22s ease, background 0.22s ease;
+  user-select: none;
+}
+.uc-dropzone:hover,
+.uc-dropzone.dragover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.04);
+}
+.uc-dropzone-icon {
+  width: 52px; height: 52px;
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+}
+.uc-dropzone-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.uc-dropzone-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Carousel wrapper ──────────────────────────────────── */
+.uc-carousel {
+  position: relative;
+  border-radius: 14px;
+  overflow: visible;
+}
+
+/* ── Viewport clips the sliding track ─────────────────── */
+.uc-viewport {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0a0a0a;
+  position: relative;
+}
+
+/* ── Sliding track ─────────────────────────────────────── */
+.uc-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* ── Each slide ────────────────────────────────────────── */
+.uc-slide {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+  flex-shrink: 0;
+}
+.uc-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* MAIN badge on first slide */
+.uc-main-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: var(--gold);
+  color: #0d0d0d;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  padding: 3px 10px;
+  border-radius: 100px;
+  pointer-events: none;
+}
+
+/* Remove × button per slide */
+.uc-remove {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(13,13,13,0.75);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s;
+  z-index: 10;
+}
+.uc-remove:hover { background: #e53e3e; border-color: #e53e3e; }
+
+/* ── Arrows ────────────────────────────────────────────── */
+.uc-arrow {
+  position: absolute;
+  top: calc(50% - (2.25rem / 2)); /* vertically centred on viewport */
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(13,13,13,0.65);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.2s, transform 0.2s, opacity 0.2s;
+  opacity: 0;
+}
+.uc-carousel:hover .uc-arrow { opacity: 1; }
+.uc-arrow:hover {
+  background: var(--gold);
+  color: #0d0d0d;
+  transform: scale(1.1);
+}
+.uc-arrow.prev { left: 10px; }
+.uc-arrow.next { right: 10px; }
+.uc-arrow:disabled { opacity: 0 !important; pointer-events: none; }
+
+/* ── Dots ──────────────────────────────────────────────── */
+.uc-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.uc-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, width 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.uc-dot.active {
+  background: var(--gold);
+  width: 20px;
+  border-radius: 4px;
+}
+
+/* ── Footer row ────────────────────────────────────────── */
+.uc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.uc-add-btn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.uc-add-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.uc-counter {
+  font-family: var(--font-head);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── Error toast ───────────────────────────────────────── */
+.uc-error {
+  margin-top: 10px;
+  background: rgba(229,62,62,0.08);
+  border: 1px solid rgba(229,62,62,0.25);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  color: #fc8181;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+</style>
+
+{# ── HTML Structure ──────────────────────────────────────── #}
+<div class="uc-wrap" id="uc-wrap-{{ uploader_id }}">
+
+  {# Hidden file input — name="images" matches Django view #}
+  <input type="file"
+         name="images"
+         id="uc-input-{{ uploader_id }}"
+         accept="image/jpeg,image/png,image/webp,image/gif"
+         multiple
+         style="display:none">
+
+  {# Drop zone — shown when no images #}
+  <div class="uc-dropzone" id="uc-drop-{{ uploader_id }}">
+    <div class="uc-dropzone-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21,15 16,10 5,21"/>
+      </svg>
+    </div>
+    <p class="uc-dropzone-title">Click to upload or drag &amp; drop</p>
+    <p class="uc-dropzone-sub">JPG, PNG or WEBP</p>
+  </div>
+
+  {# Carousel — shown once images are added #}
+  <div class="uc-carousel" id="uc-carousel-{{ uploader_id }}" style="display:none;">
+
+    <div class="uc-viewport">
+      <div class="uc-track" id="uc-track-{{ uploader_id }}">
+        {# slides injected by JS #}
+      </div>
+    </div>
+
+    {# Arrows #}
+    <button type="button" class="uc-arrow prev" id="uc-prev-{{ uploader_id }}" aria-label="Previous photo">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <button type="button" class="uc-arrow next" id="uc-next-{{ uploader_id }}" aria-label="Next photo">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+    </button>
+
+    {# Dots #}
+    <div class="uc-dots" id="uc-dots-{{ uploader_id }}"></div>
+
+    {# Footer #}
+    <div class="uc-footer">
+      <button type="button" class="uc-add-btn" id="uc-add-{{ uploader_id }}">
+        + Add photo
+      </button>
+      <span class="uc-counter" id="uc-counter-{{ uploader_id }}">1 / 1</span>
+    </div>
+  </div>
+
+  {# Error message #}
+  <div class="uc-error" id="uc-error-{{ uploader_id }}" style="display:none;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="uc-error-msg-{{ uploader_id }}"></span>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var ID      = '{{ uploader_id }}';
+  var MAX     = 5;
+  var files   = [];   // File objects
+  var urls    = [];   // Object URL strings (parallel array)
+  var current = 0;
+
+  // ── Element refs ────────────────────────────────────────
+  var input    = document.getElementById('uc-input-'   + ID);
+  var dropZone = document.getElementById('uc-drop-'    + ID);
+  var carousel = document.getElementById('uc-carousel-'+ ID);
+  var track    = document.getElementById('uc-track-'   + ID);
+  var dotsWrap = document.getElementById('uc-dots-'    + ID);
+  var counter  = document.getElementById('uc-counter-' + ID);
+  var prevBtn  = document.getElementById('uc-prev-'    + ID);
+  var nextBtn  = document.getElementById('uc-next-'    + ID);
+  var addBtn   = document.getElementById('uc-add-'     + ID);
+  var errorBox = document.getElementById('uc-error-'   + ID);
+  var errorMsg = document.getElementById('uc-error-msg-'+ ID);
+
+  // ── Slide to index (smooth) ──────────────────────────────
+  function goTo(idx) {
+    current = Math.max(0, Math.min(idx, files.length - 1));
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    updateChrome();
+  }
+
+  // ── Update dots, counter, arrows ────────────────────────
+  function updateChrome() {
+    // Counter
+    counter.textContent = (current + 1) + ' / ' + files.length;
+
+    // Arrows — always show if >1 image (wrap around)
+    prevBtn.disabled = files.length <= 1;
+    nextBtn.disabled = files.length <= 1;
+
+    // Add button — hide when maxed
+    addBtn.style.display = files.length >= MAX ? 'none' : 'inline-block';
+
+    // Dots
+    dotsWrap.innerHTML = '';
+    files.forEach(function (_, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'uc-dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to photo ' + (i + 1));
+      dot.addEventListener('click', function () { goTo(i); });
+      dotsWrap.appendChild(dot);
+    });
+  }
+
+  // ── Rebuild all slides from files[] ─────────────────────
+  function buildSlides() {
+    // Revoke old object URLs to avoid memory leaks
+    urls.forEach(function (u) { URL.revokeObjectURL(u); });
+    urls = files.map(function (f) { return URL.createObjectURL(f); });
+
+    track.innerHTML = '';
+    files.forEach(function (f, i) {
+      var slide = document.createElement('div');
+      slide.className = 'uc-slide';
+
+      var img = document.createElement('img');
+      img.src = urls[i];
+      img.alt = 'Photo ' + (i + 1);
+      slide.appendChild(img);
+
+      // MAIN badge on first slide
+      if (i === 0) {
+        var badge = document.createElement('div');
+        badge.className = 'uc-main-badge';
+        badge.textContent = 'MAIN';
+        slide.appendChild(badge);
+      }
+
+      // Remove button
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'uc-remove';
+      rm.setAttribute('aria-label', 'Remove photo ' + (i + 1));
+      rm.innerHTML = '&times;';
+      rm.addEventListener('click', function (e) {
+        e.stopPropagation();
+        removeFile(i);
+      });
+      slide.appendChild(rm);
+
+      track.appendChild(slide);
+    });
+
+    syncInput();
+  }
+
+  // ── Full re-render ───────────────────────────────────────
+  function render() {
+    hideError();
+
+    if (files.length === 0) {
+      carousel.style.display = 'none';
+      dropZone.style.display = 'block';
+      return;
+    }
+
+    dropZone.style.display = 'none';
+    carousel.style.display = 'block';
+
+    if (current >= files.length) current = files.length - 1;
+
+    buildSlides();
+
+    // Apply position without animation on full rebuild
+    track.style.transition = 'none';
+    track.style.transform  = 'translateX(-' + (current * 100) + '%)';
+    // Re-enable transition on next frame
+    requestAnimationFrame(function () {
+      track.style.transition = '';
+    });
+
+    updateChrome();
+  }
+
+  // ── Remove a file ────────────────────────────────────────
+  function removeFile(idx) {
+    files.splice(idx, 1);
+    if (current >= files.length) current = Math.max(0, files.length - 1);
+    render();
+  }
+
+  // ── Add files (with validation) ──────────────────────────
+  function addFiles(newFiles) {
+    var incoming = Array.from(newFiles).filter(function (f) {
+      return f.type.startsWith('image/');
+    });
+
+    if (files.length + incoming.length > MAX) {
+      var allowed = MAX - files.length;
+      if (allowed > 0) {
+        incoming = incoming.slice(0, allowed);
+        files = files.concat(incoming);
+        current = 0;
+        render();
+      }
+      showError('You can upload a maximum of 5 photos. Extra images were not added.');
+      return;
+    }
+
+    files = files.concat(incoming);
+    current = 0;
+    render();
+  }
+
+  // ── Sync File objects back to the real <input> ───────────
+  function syncInput() {
+    var dt = new DataTransfer();
+    files.forEach(function (f) { dt.items.add(f); });
+    input.files = dt.files;
+  }
+
+  // ── Error helpers ────────────────────────────────────────
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorBox.style.display = 'flex';
+    clearTimeout(errorBox._timer);
+    errorBox._timer = setTimeout(hideError, 4000);
+  }
+
+  function hideError() {
+    errorBox.style.display = 'none';
+  }
+
+  // ── Drop zone events ─────────────────────────────────────
+  dropZone.addEventListener('click', function () { input.click(); });
+
+  dropZone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', function () {
+    dropZone.classList.remove('dragover');
+  });
+  dropZone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    addFiles(e.dataTransfer.files);
+  });
+
+  // ── Carousel drag-to-drop (when carousel is showing) ─────
+  carousel.addEventListener('dragover', function (e) { e.preventDefault(); });
+  carousel.addEventListener('drop', function (e) {
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+  });
+
+  // ── Input change ──────────────────────────────────────────
+  input.addEventListener('change', function () {
+    if (input.files.length) addFiles(input.files);
+    // Reset input value so same file can be re-added after removal
+    input.value = '';
+  });
+
+  // ── Arrow buttons ─────────────────────────────────────────
+  prevBtn.addEventListener('click', function () {
+    goTo((current - 1 + files.length) % files.length);
+  });
+  nextBtn.addEventListener('click', function () {
+    goTo((current + 1) % files.length);
+  });
+
+  // ── Add more button ───────────────────────────────────────
+  addBtn.addEventListener('click', function () { input.click(); });
+
+  // ── Touch swipe on carousel ───────────────────────────────
+  var touchX = 0;
+  carousel.addEventListener('touchstart', function (e) {
+    touchX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  carousel.addEventListener('touchend', function (e) {
+    var diff = touchX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 40) {
+      goTo((current + (diff > 0 ? 1 : -1) + files.length) % files.length);
+    }
+  }, { passive: true });
+
+  // ── Keyboard when focused inside ─────────────────────────
+  document.addEventListener('keydown', function (e) {
+    if (!carousel || carousel.style.display === 'none') return;
+    if (e.key === 'ArrowLeft')  goTo((current - 1 + files.length) % files.length);
+    if (e.key === 'ArrowRight') goTo((current + 1) % files.length);
+  });
+
+  // ── Init ──────────────────────────────────────────────────
+  render();
+})();
+</script>

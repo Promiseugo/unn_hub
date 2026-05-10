@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - var(--nav-height) - 80px);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    box-sizing: border-box;
+  }
+  .auth-box { width: 100%; max-width: 460px; }
+  .auth-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 2rem; text-decoration: none; }
+  .auth-logo-icon { width: 44px; height: 44px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .auth-logo-text { font-family: var(--font-head); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; color: var(--text); }
+  .auth-logo-text span { color: var(--gold); }
+  .auth-heading { font-family: var(--font-head); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 4px; }
+  .auth-sub { color: var(--text-muted); font-size: 0.875rem; text-align: center; margin-bottom: 2rem; }
+  .auth-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; margin-bottom: 1.25rem; }
+  .field-group { margin-bottom: 1rem; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; font-family: var(--font-head); }
+  .field-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 0.875rem; font-family: var(--font-body); transition: border-color 0.2s; outline: none; box-sizing: border-box; }
+  .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+  .field-input::placeholder { color: var(--text-muted); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+  .btn-auth { width: 100%; background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; padding: 13px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
+  .btn-auth:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .auth-footer { text-align: center; font-size: 0.875rem; color: var(--text-muted); }
+  .auth-footer a { color: var(--gold); }
+  .field-error { color: #fc8181; font-size: 0.75rem; margin-top: 3px; }
+  .form-errors { background: rgba(229,62,62,0.08); border: 1px solid rgba(229,62,62,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; font-size: 0.85rem; color: #fc8181; }
+  .field-help { color: var(--text-muted); font-size: 0.72rem; margin-top: 3px; }
+  @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } .auth-card { padding: 1.5rem 1.25rem; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;">
+  <div class="auth-box">
+
+    <a href="{% url 'landing' %}" class="auth-logo">
+      <div class="auth-logo-icon">
+        <img src="{% static 'images/ux_logo.png' %}" style="width:26px;height:26px;object-fit:contain;" alt="UniTraX">
+      </div>
+      <div class="auth-logo-text">UniTra<span>X</span></div>
+    </a>
+
+    <h1 class="auth-heading">Create your account</h1>
+    <p class="auth-sub">Join the campus marketplace — it's free</p>
+
+    <div class="auth-card">
+      <form method="POST">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="form-errors">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">First Name</label>
+            <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}"
+                   placeholder="John" class="field-input" required>
+            {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label class="field-label">Last Name</label>
+            <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}"
+                   placeholder="Doe" class="field-input" required>
+            {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input type="text" name="username" value="{{ form.username.value|default:'' }}"
+                 placeholder="johndoe" class="field-input" required>
+          <div class="field-help">Used in your profile URL. Letters, numbers and underscores only.</div>
+          {% if form.username.errors %}<div class="field-error">{{ form.username.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+                 placeholder="your@email.com" class="field-input" required>
+          {% if form.email.errors %}<div class="field-error">{{ form.email.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input type="password" name="password1" placeholder="••••••••"
+                   class="field-input" required>
+            {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors|join:", " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <input type="password" name="password2" placeholder="••••••••"
+                   class="field-input" required>
+            {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="field-help" style="margin-bottom:1rem;">
+          Password must be at least 8 characters and not entirely numeric.
+        </div>
+
+        <button type="submit" class="btn-auth">Create Account</button>
+      </form>
+    </div>
+
+    <p class="auth-footer">
+      Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

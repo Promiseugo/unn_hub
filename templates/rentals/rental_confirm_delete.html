@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Remove Rental Listing — UniTraX{% endblock %}
+{% block extra_css %}<style>
+  .confirm-wrap { min-height: calc(100vh - var(--nav-height) - 80px); width: 100%; display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; box-sizing: border-box; }
+  .confirm-box { width: 100%; max-width: 440px; text-align: center; }
+  .confirm-icon { width: 68px; height: 68px; background: rgba(229,62,62,0.1); border: 1px solid rgba(229,62,62,0.25); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+  .confirm-heading { font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+  .confirm-name { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.75rem; }
+  .confirm-warning { background: rgba(229,62,62,0.06); border: 1px solid rgba(229,62,62,0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--text-muted); }
+  .btn-danger { background: rgba(229,62,62,0.1); color: #fc8181; font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; padding: 11px 28px; border-radius: 10px; border: 1px solid rgba(229,62,62,0.3); cursor: pointer; transition: all 0.2s; }
+  .btn-danger:hover { background: rgba(229,62,62,0.2); }
+  .btn-cancel-link { display: inline-block; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; padding: 11px 24px; border-radius: 10px; border: 1px solid var(--border); text-decoration: none; transition: all 0.2s; }
+  .btn-cancel-link:hover { border-color: var(--gold); color: var(--gold); }
+</style>{% endblock %}
+{% block content %}
+<div class="confirm-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fc8181" stroke-width="1.8"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    </div>
+    <h1 class="confirm-heading">Remove this listing?</h1>
+    <p class="confirm-name"><strong>{{ rental.title }}</strong></p>
+    <p class="confirm-warning">The listing will be hidden from accommodation search. You can restore it via admin if needed.</p>
+    <div style="display:flex;gap:0.875rem;justify-content:center;flex-wrap:wrap;">
+      <form method="POST">{% csrf_token %}<button type="submit" class="btn-danger">Yes, Remove It</button></form>
+      <a href="{{ rental.get_absolute_url }}" class="btn-cancel-link">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

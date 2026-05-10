@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.title }} — UniTraX{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'services:service-list' %}">Services</a></li>
+    {% if service.category %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'services:service-list' %}?category={{ service.category.slug }}">
+          {{ service.category.name }}
+        </a>
+      </li>
+    {% endif %}
+    <li class="breadcrumb-item active">{{ service.title|truncatechars:40 }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        {% if service.category %}
+          <span class="badge bg-secondary mb-2">{{ service.category.name }}</span>
+        {% endif %}
+        <h2 class="fw-bold">{{ service.title }}</h2>
+        <p class="text-success fw-bold fs-3 mb-1">
+          ₦{{ service.price|floatformat:0 }}
+          <small style="color:var(--text-muted);font-weight:400;font-size:0.8rem">/ {{ service.price_label }}</small>
+        </p>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem">
+          <span style="display:inline-block;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:5px;font-family:var(--font-head)">
+            {{ service.get_delivery_mode_display }}
+          </span>
+          · Posted {{ service.created_at|timesince }} ago
+        </p>
+
+        {# Video #}
+        {% if service.video %}
+          <div style="margin-top:1.25rem;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+            <div style="padding:0.875rem 1.25rem 0.625rem;border-bottom:1px solid var(--border);">
+              <span style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Intro Video
+              </span>
+            </div>
+            <video controls style="width:100%;max-height:300px;background:#000;display:block;">
+              <source src="{{ service.video.url }}">
+            </video>
+          </div>
+        {% endif %}
+        <h6 class="fw-semibold">About this service</h6>
+        <p style="white-space:pre-line">{{ service.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    {# Provider card #}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body p-4 text-center">
+        {% if service.provider.profile.avatar %}
+          <img src="{{ service.provider.profile.avatar.url }}"
+               class="rounded-circle mb-2" width="64" height="64"
+               style="object-fit:cover" alt="{{ service.provider.username }}">
+        {% else %}
+          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center
+                      text-white fw-bold mx-auto mb-2"
+               style="width:64px;height:64px;font-size:1.5rem">
+            {{ service.provider.username|first|upper }}
+          </div>
+        {% endif %}
+        <h6 class="fw-bold mb-0">
+          <a href="{% url 'accounts:profile' service.provider.username %}"
+             class="text-dark text-decoration-none">
+            {{ service.provider.username }}
+          </a>
+        </h6>
+        <small style="color:var(--text-muted)">Service Provider</small>
+
+        {% if user == service.provider %}
+          <div class="d-grid gap-2 mt-3">
+            <a href="{% url 'services:service-edit' service.pk %}"
+               class="btn btn-outline-primary btn-sm">✏️ Edit</a>
+            <a href="{% url 'services:service-delete' service.pk %}"
+               class="btn btn-outline-danger btn-sm">🗑️ Remove</a>
+          </div>
+        {% elif user.is_authenticated %}
+          <a href="{% url 'messaging:new-thread' service.provider.username %}?subject=Re: {{ service.title|urlencode }}"
+             class="btn btn-success w-100 mt-3">
+            💬 Contact Provider
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+             class="btn btn-primary w-100 mt-3">
+            Login to Contact
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Reviews Section ─────────────────────────────────────── #}
+<div class="mt-2">
+  {% include 'reviews/review_section.html' with object_id=service.pk %}
+</div>
+
+{# Likes, Dislikes & Comments #}
+<div style="margin-top:2rem;">
+  {% include 'components/interactions.html' with app_label=app_label model_name=model_name object_id=service.pk comments=comments likes=likes dislikes=dislikes user_reaction=user_reaction %}
+</div>
+
+{% endblock %}

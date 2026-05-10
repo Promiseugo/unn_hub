@@ -23,6 +23,7 @@ AUTH_USER_MODEL = 'accounts.User'
 SITE_NAME = config('SITE_NAME', default='UniTraX')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unitrax.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='support@unitrax.com')
 
 
 # ---------------------------------------------
@@ -108,6 +109,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.unread_messages',
+                'apps.core.context_processors.support_email',
             ],
             'loaders': [
                 # Project templates/ checked FIRST -- admin overrides work here

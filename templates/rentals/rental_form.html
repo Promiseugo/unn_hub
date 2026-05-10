@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ action }} Rental Listing — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-wrap { max-width: 800px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  .form-header { margin-bottom: 2rem; }
+  .form-header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .form-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; }
+  .form-section-label { font-family: var(--font-head); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--border); }
+  .photo-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  .photo-label { font-family: var(--font-head); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px; }
+  .file-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 0.875rem; font-family: var(--font-body); cursor: pointer; }
+  .file-input::file-selector-button { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.78rem; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; margin-right: 10px; }
+  .form-hint { color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; }
+  .current-photos { margin-top: 0.75rem; }
+  .current-photos-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
+  .photo-preview-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+  .photo-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+  .img-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .btn-submit { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; padding: 11px 28px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-cancel { background: transparent; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; padding: 11px 20px; border-radius: 10px; border: 1px solid var(--border); text-decoration: none; display: inline-block; transition: all 0.2s; }
+  .btn-cancel:hover { border-color: var(--gold); color: var(--gold); }
+  .form-control, .form-select { background: var(--bg-elevated) !important; border-color: var(--border) !important; color: var(--text) !important; }
+  .form-control:focus, .form-select:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important; background: var(--bg-elevated) !important; }
+  label { color: var(--text-muted) !important; font-size: 0.8rem !important; }
+  .form-check-input:checked { background-color: var(--gold) !important; border-color: var(--gold) !important; }
+  .tips-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .tips-title { font-family: var(--font-head); font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+  .tips-list { list-style: none; padding: 0; margin: 0; }
+  .tips-list li { font-size: 0.8rem; color: var(--text-muted); padding: 4px 0; display: flex; gap: 8px; }
+  .tips-list li::before { content: "→"; color: var(--gold); flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>{{ action }} Rental Listing</h1>
+    <p>{% if action == 'Post' %}List your property to reach UNN students looking for accommodation.{% else %}Update your listing details.{% endif %}</p>
+  </div>
+
+  <div class="form-card">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-section-label">Property Details</div>
+      {{ form|crispy }}
+
+      <!-- Photos -->
+      <div class="photo-section">
+        <div class="photo-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          Photos
+          <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;text-transform:none;letter-spacing:0;">(Optional — up to 5)</span>
+        </div>
+
+        {% if rental %}
+          {% with rental.images.all as images %}
+            {% if images %}
+              <div style="margin-bottom:1rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:1rem;">
+                <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-head);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">
+                  Current photos
+                  <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gold);">({{ images|length }} / 5)</span>
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  {% for img in images %}
+                    <img src="{{ img.image.url }}"
+                         style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid {% if forloop.first %}var(--gold){% else %}var(--border){% endif %};"
+                         alt="Photo {{ forloop.counter }}" title="Photo {{ forloop.counter }}{% if forloop.first %} (Main){% endif %}">
+                  {% endfor %}
+                </div>
+                {% if images|length < 5 %}
+                  <p style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;margin-bottom:0;">
+                    New uploads are added to existing photos.
+                  </p>
+                {% else %}
+                  <p style="font-size:0.72rem;color:#fc8181;margin-top:8px;margin-bottom:0;">
+                    Maximum 5 photos reached. Remove some before adding new ones.
+                  </p>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+
+        <input type="file" name="images" accept="image/*" multiple
+               class="file-input" id="imageUpload">
+        <div class="form-hint">JPG, PNG or WEBP. Select up to 5 at once. Good photos get 3× more inquiries.</div>
+
+        <div id="uploadError" style="display:none;margin-top:0.5rem;background:rgba(229,62,62,0.08);border:1px solid rgba(229,62,62,0.25);border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#fc8181;">
+          ⚠ You can only upload up to 5 photos at a time. Please select 5 or fewer.
+        </div>
+
+        <div id="imagePreview" style="display:none;margin-top:0.75rem;">
+          <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-head);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">
+            New photos — <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">click any photo to set it as main</span>
+          </p>
+          <div id="previewStrip" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+
+        <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
+      </div>
+
+      {# Video upload component #}
+      {# ── Video Upload ──────────────────────────── #}
+      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Video <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;text-transform:none;letter-spacing:0;margin-left:4px;">(Optional &mdash; MP4/MOV/WebM, max 50MB)</span>
+        </div>
+        <div id="vdz" style="border:2px dashed var(--border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.2s;">
+          <input type="file" name="video" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" id="vdi" style="display:none">
+          <div id="vdinner">
+            <p style="color:var(--text);font-size:0.875rem;font-weight:600;margin:0 0 4px;">Click to upload or drag &amp; drop</p>
+            <p style="color:var(--text-muted);font-size:0.75rem;margin:0;">MP4 &middot; MOV &middot; WebM &middot; Max 50MB</p>
+          </div>
+          <div id="vdprev" style="display:none">
+            <video id="vdvid" controls style="width:100%;max-height:220px;border-radius:8px;background:#000;"></video>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span id="vdfname" style="font-size:0.78rem;color:var(--text-muted);"></span>
+              <button type="button" id="vdclear" style="background:rgba(229,62,62,0.1);border:1px solid rgba(229,62,62,0.2);color:#fc8181;font-size:0.75rem;padding:3px 10px;border-radius:6px;cursor:pointer;">Remove</button>
+            </div>
+          </div>
+        </div>
+        <script>
+        (function(){
+          var z=document.getElementById('vdz'),i=document.getElementById('vdi'),
+              inn=document.getElementById('vdinner'),pr=document.getElementById('vdprev'),
+              vid=document.getElementById('vdvid'),fn=document.getElementById('vdfname'),
+              cl=document.getElementById('vdclear');
+          z.onclick=function(){if(!z.classList.contains('hf'))i.click();};
+          z.ondragover=function(e){e.preventDefault();z.style.borderColor='rgba(201,168,76,0.5)';};
+          z.ondragleave=function(){z.style.borderColor='';};
+          z.ondrop=function(e){e.preventDefault();z.style.borderColor='';if(e.dataTransfer.files[0])go(e.dataTransfer.files[0]);};
+          i.onchange=function(){if(i.files[0])go(i.files[0]);};
+          function go(f){
+            if(f.size>52428800){alert('Max 50MB');return;}
+            vid.src=URL.createObjectURL(f);
+            fn.textContent=f.name+' ('+(f.size/1048576).toFixed(1)+'MB)';
+            inn.style.display='none';pr.style.display='block';z.classList.add('hf');
+            var dt=new DataTransfer();dt.items.add(f);i.files=dt.files;
+          }
+          cl.onclick=function(e){
+            e.stopPropagation();vid.src='';i.value='';
+            inn.style.display='block';pr.style.display='none';z.classList.remove('hf');
+          };
+        })();
+        </script>
+      </div>
+
+
+      <div style="display:flex;gap:0.875rem;flex-wrap:wrap;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <button type="submit" class="btn-submit">
+          {% if action == 'Post' %}Post Listing{% else %}Save Changes{% endif %}
+        </button>
+        {% if rental %}
+          <a href="{{ rental.get_absolute_url }}" class="btn-cancel">Cancel</a>
+        {% else %}
+          <a href="{% url 'rentals:rental-list' %}" class="btn-cancel">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <div class="tips-card">
+    <div class="tips-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Tips for a great listing
+    </div>
+    <ul class="tips-list">
+      <li>Include the exact street — students search by area</li>
+      <li>State clearly what the price covers (water, light, etc.)</li>
+      <li>Upload a walkthrough video — builds trust immediately</li>
+      <li>Mention proximity to campus gates and markets</li>
+      <li>Respond to inquiries within 24 hours</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var MAX = 5;
+  var mainIdx = 0;
+  var input      = document.getElementById('imageUpload');
+  var errorBox   = document.getElementById('uploadError');
+  var previewWrap= document.getElementById('imagePreview');
+  var strip      = document.getElementById('previewStrip');
+  var mainInput  = document.getElementById('mainImageIndex');
+
+  input.addEventListener('change', function () {
+    var files = Array.from(input.files);
+    errorBox.style.display = 'none';
+
+    if (files.length > MAX) {
+      errorBox.style.display = 'block';
+      input.value = '';
+      previewWrap.style.display = 'none';
+      strip.innerHTML = '';
+      return;
+    }
+
+    if (files.length === 0) {
+      previewWrap.style.display = 'none';
+      strip.innerHTML = '';
+      return;
+    }
+
+    mainIdx = 0;
+    mainInput.value = 0;
+    strip.innerHTML = '';
+    previewWrap.style.display = 'block';
+
+    files.forEach(function (file, i) {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;cursor:pointer;flex-shrink:0;';
+        wrap.title = i === 0 ? 'Main photo' : 'Click to set as main';
+
+        var img = document.createElement('img');
+        img.src = ev.target.result;
+        img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;' +
+          'border:2px solid ' + (i === 0 ? 'var(--gold)' : 'var(--border)') + ';' +
+          'transition:border-color 0.2s,opacity 0.2s;' +
+          'opacity:' + (i === 0 ? '1' : '0.6') + ';';
+        wrap.appendChild(img);
+
+        var badge = document.createElement('span');
+        badge.textContent = 'MAIN';
+        badge.style.cssText = 'position:absolute;bottom:4px;left:4px;' +
+          'background:var(--gold);color:#0d0d0d;font-family:var(--font-head);' +
+          'font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;' +
+          'display:' + (i === 0 ? 'block' : 'none') + ';';
+        wrap.appendChild(badge);
+
+        wrap.addEventListener('click', function () {
+          mainIdx = i;
+          mainInput.value = i;
+          Array.from(strip.children).forEach(function (w, j) {
+            var im = w.querySelector('img');
+            var bd = w.querySelector('span');
+            var isMain = (j === mainIdx);
+            im.style.borderColor = isMain ? 'var(--gold)' : 'var(--border)';
+            im.style.opacity     = isMain ? '1' : '0.6';
+            bd.style.display     = isMain ? 'block' : 'none';
+            w.title = isMain ? 'Main photo' : 'Click to set as main';
+          });
+        });
+
+        strip.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+})();
+</script>
+{% endblock %}

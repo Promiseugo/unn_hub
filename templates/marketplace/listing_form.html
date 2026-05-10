@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ action }} Listing — UniTraX{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    {# Header #}
+    <div class="mb-4">
+      <h2 class="fw-bold">{{ action }} Listing</h2>
+      <p class="text-muted">
+        {% if action == 'Create' %}
+          Fill in the details below. Good photos and clear descriptions sell faster.
+        {% else %}
+          Update your listing details below.
+        {% endif %}
+      </p>
+    </div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;">
+      <div style="padding:1.75rem;">
+
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {# ── Listing Details ─────────────────────────────── #}
+          <h6 class="fw-semibold text-muted text-uppercase mb-3"
+              style="font-size:0.75rem; letter-spacing:0.05em">
+            Listing Details
+          </h6>
+
+          {{ form|crispy }}
+
+          <hr class="my-4">
+
+          {# ── Image Upload ────────────────────────────────── #}
+          <h6 class="fw-semibold text-muted text-uppercase mb-1"
+              style="font-size:0.75rem; letter-spacing:0.05em">
+            Photos
+          </h6>
+
+          {# ── Existing images (edit mode) ──────────────────── #}
+          {% if listing %}
+            {% with listing.images.all as images %}
+              {% if images %}
+                <div style="margin-bottom:1rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:1rem;">
+                  <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-head);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">
+                    Current photos
+                    <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gold);">({{ images|length }} / 5)</span>
+                  </p>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    {% for img in images %}
+                      <img src="{{ img.image.url }}"
+                           style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid {% if forloop.first %}var(--gold){% else %}var(--border){% endif %};"
+                           alt="Photo {{ forloop.counter }}" title="{% if forloop.first %}Main photo{% else %}Photo {{ forloop.counter }}{% endif %}">
+                    {% endfor %}
+                  </div>
+                  {% if images|length < 5 %}
+                    <p style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;margin-bottom:0;">New uploads are added to existing photos.</p>
+                  {% else %}
+                    <p style="font-size:0.72rem;color:#fc8181;margin-top:8px;margin-bottom:0;">Maximum 5 photos reached.</p>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+          {% endif %}
+
+          {# ── Upload input ─────────────────────────────────── #}
+          <div class="mb-2">
+            <input type="file" name="images" accept="image/*" multiple
+                   class="form-control" id="imageUpload">
+            <div class="form-text">JPG, PNG or WEBP. Select up to 5 at once.</div>
+          </div>
+
+          {# ── Upload error ─────────────────────────────────── #}
+          <div id="uploadError" style="display:none;margin-bottom:0.75rem;background:rgba(229,62,62,0.08);border:1px solid rgba(229,62,62,0.25);border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#fc8181;">
+            ⚠ You can only upload up to 5 photos at a time. Please select 5 or fewer.
+          </div>
+
+          {# ── Preview grid — click to set main ────────────── #}
+          <div id="imagePreview" style="display:none;margin-bottom:1rem;">
+            <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-head);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">
+              New photos — <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">click any photo to set it as main</span>
+            </p>
+            <div id="previewStrip" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+          </div>
+
+          {# Hidden input carries the chosen main index to the view #}
+          <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
+
+          {# ── Video Upload #}
+      {# ── Video Upload ──────────────────────────── #}
+      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Video <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;text-transform:none;letter-spacing:0;margin-left:4px;">(Optional &mdash; MP4/MOV/WebM, max 50MB)</span>
+        </div>
+        <div id="vdz" style="border:2px dashed var(--border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.2s;">
+          <input type="file" name="video" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" id="vdi" style="display:none">
+          <div id="vdinner">
+            <p style="color:var(--text);font-size:0.875rem;font-weight:600;margin:0 0 4px;">Click to upload or drag &amp; drop</p>
+            <p style="color:var(--text-muted);font-size:0.75rem;margin:0;">MP4 &middot; MOV &middot; WebM &middot; Max 50MB</p>
+          </div>
+          <div id="vdprev" style="display:none">
+            <video id="vdvid" controls style="width:100%;max-height:220px;border-radius:8px;background:#000;"></video>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span id="vdfname" style="font-size:0.78rem;color:var(--text-muted);"></span>
+              <button type="button" id="vdclear" style="background:rgba(229,62,62,0.1);border:1px solid rgba(229,62,62,0.2);color:#fc8181;font-size:0.75rem;padding:3px 10px;border-radius:6px;cursor:pointer;">Remove</button>
+            </div>
+          </div>
+        </div>
+        <script>
+        (function(){
+          var z=document.getElementById('vdz'),i=document.getElementById('vdi'),
+              inn=document.getElementById('vdinner'),pr=document.getElementById('vdprev'),
+              vid=document.getElementById('vdvid'),fn=document.getElementById('vdfname'),
+              cl=document.getElementById('vdclear');
+          z.onclick=function(){if(!z.classList.contains('hf'))i.click();};
+          z.ondragover=function(e){e.preventDefault();z.style.borderColor='rgba(201,168,76,0.5)';};
+          z.ondragleave=function(){z.style.borderColor='';};
+          z.ondrop=function(e){e.preventDefault();z.style.borderColor='';if(e.dataTransfer.files[0])go(e.dataTransfer.files[0]);};
+          i.onchange=function(){if(i.files[0])go(i.files[0]);};
+          function go(f){
+            if(f.size>52428800){alert('Max 50MB');return;}
+            vid.src=URL.createObjectURL(f);
+            fn.textContent=f.name+' ('+(f.size/1048576).toFixed(1)+'MB)';
+            inn.style.display='none';pr.style.display='block';z.classList.add('hf');
+            var dt=new DataTransfer();dt.items.add(f);i.files=dt.files;
+          }
+          cl.onclick=function(e){
+            e.stopPropagation();vid.src='';i.value='';
+            inn.style.display='block';pr.style.display='none';z.classList.remove('hf');
+          };
+        })();
+        </script>
+      </div>
+
+
+          <hr class="my-4">
+
+          {# ── Submit Buttons ──────────────────────────────── #}
+          <div class="d-flex gap-2">
+            <button type="submit" style="background:var(--gold);color:#0d0d0d;font-family:var(--font-head);font-weight:700;font-size:0.9rem;padding:11px 28px;border-radius:10px;border:none;cursor:pointer;transition:all 0.2s;">
+              {% if action == 'Create' %}Post Listing{% else %}Save Changes{% endif %}
+            </button>
+            {% if listing %}
+              <a href="{{ listing.get_absolute_url }}" style="background:transparent;color:var(--text-muted);font-family:var(--font-head);font-weight:600;font-size:0.9rem;padding:11px 20px;border-radius:10px;border:1px solid var(--border);text-decoration:none;display:inline-block;">
+                Cancel
+              </a>
+            {% else %}
+              <a href="{% url 'marketplace:listing-list' %}" style="background:transparent;color:var(--text-muted);font-family:var(--font-head);font-weight:600;font-size:0.9rem;padding:11px 20px;border-radius:10px;border:1px solid var(--border);text-decoration:none;display:inline-block;">
+                Cancel
+              </a>
+            {% endif %}
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    {# Tips sidebar card #}
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;margin-top:1.25rem;">
+      <div style="padding:1.25rem;">
+        <h6 class="fw-semibold">💡 Tips for a great listing</h6>
+        <ul style="color:var(--text-muted);font-size:0.8rem;margin:0;">
+          <li>Write a clear, specific title (e.g. "HP EliteBook 840 G5 — 8GB RAM")</li>
+          <li>Mention any defects honestly — it builds trust</li>
+          <li>Set a fair price — check similar listings first</li>
+          <li>Add your location so buyers know how far to come</li>
+          <li>Upload real photos, not stock images</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var MAX = 5;
+  var mainIdx = 0;
+  var input      = document.getElementById('imageUpload');
+  var errorBox   = document.getElementById('uploadError');
+  var previewWrap= document.getElementById('imagePreview');
+  var strip      = document.getElementById('previewStrip');
+  var mainInput  = document.getElementById('mainImageIndex');
+
+  input.addEventListener('change', function () {
+    var files = Array.from(input.files);
+    errorBox.style.display = 'none';
+
+    if (files.length > MAX) {
+      errorBox.style.display = 'block';
+      input.value = '';
+      previewWrap.style.display = 'none';
+      strip.innerHTML = '';
+      return;
+    }
+
+    if (files.length === 0) {
+      previewWrap.style.display = 'none';
+      strip.innerHTML = '';
+      return;
+    }
+
+    mainIdx = 0;
+    mainInput.value = 0;
+    strip.innerHTML = '';
+    previewWrap.style.display = 'block';
+
+    files.forEach(function (file, i) {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;cursor:pointer;flex-shrink:0;';
+        wrap.title = i === 0 ? 'Main photo' : 'Click to set as main';
+
+        var img = document.createElement('img');
+        img.src = ev.target.result;
+        img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;' +
+          'border:2px solid ' + (i === 0 ? 'var(--gold)' : 'var(--border)') + ';' +
+          'transition:border-color 0.2s,opacity 0.2s;' +
+          'opacity:' + (i === 0 ? '1' : '0.6') + ';';
+        wrap.appendChild(img);
+
+        // MAIN badge
+        var badge = document.createElement('span');
+        badge.textContent = 'MAIN';
+        badge.style.cssText = 'position:absolute;bottom:4px;left:4px;' +
+          'background:var(--gold);color:#0d0d0d;font-family:var(--font-head);' +
+          'font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;' +
+          'display:' + (i === 0 ? 'block' : 'none') + ';';
+        wrap.appendChild(badge);
+
+        // Click to set as main
+        wrap.addEventListener('click', function () {
+          mainIdx = i;
+          mainInput.value = i;
+          // Update all thumbs
+          Array.from(strip.children).forEach(function (w, j) {
+            var im = w.querySelector('img');
+            var bd = w.querySelector('span');
+            var isMain = (j === mainIdx);
+            im.style.borderColor = isMain ? 'var(--gold)' : 'var(--border)';
+            im.style.opacity     = isMain ? '1' : '0.6';
+            bd.style.display     = isMain ? 'block' : 'none';
+            w.title = isMain ? 'Main photo' : 'Click to set as main';
+          });
+        });
+
+        strip.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+})();
+</script>
+{% endblock %}

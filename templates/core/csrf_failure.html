@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Session Expired — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .csrf-wrap {
+    min-height: calc(100vh - var(--nav-height) - 80px);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .csrf-box {
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .csrf-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+
+  .csrf-title {
+    font-family: var(--font-head);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  .csrf-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .csrf-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .csrf-card-title {
+    font-family: var(--font-head);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .csrf-card-body {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .btn-go-home {
+    display: inline-block;
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 12px 28px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-right: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-go-home:hover {
+    background: var(--gold-light);
+    color: #0d0d0d;
+    transform: translateY(-1px);
+  }
+
+  .btn-reload {
+    display: inline-block;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-reload:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="csrf-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;">
+  <div class="csrf-box">
+
+    <div class="csrf-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12,6 12,12 16,14"/>
+      </svg>
+    </div>
+
+    <h1 class="csrf-title">Your session expired</h1>
+    <p class="csrf-desc">
+      The page you were on has been open too long and your
+      security token expired. This is normal — just go back
+      and try again.
+    </p>
+
+    <div class="csrf-card">
+      <div class="csrf-card-title">What happened?</div>
+      <p class="csrf-card-body">
+        UniTraX uses security tokens to protect every form submission.
+        These tokens expire after a period of inactivity to prevent
+        unauthorised actions on your account. Simply refreshing the
+        page generates a fresh token.
+      </p>
+    </div>
+
+    <div>
+      <a href="javascript:history.back()" class="btn-reload"
+         onclick="window.location.reload(); return false;">
+        ↺ Reload the page
+      </a>
+      <a href="{% url 'landing' %}" class="btn-go-home">
+        Go to Homepage
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

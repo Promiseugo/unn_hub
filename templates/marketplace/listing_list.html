@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Marketplace — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .mkt-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .mkt-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; }
+  .mkt-header p  { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .btn-post { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap; }
+  .btn-post:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
+
+  .search-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .search-input-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+  .search-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px 9px 38px; font-size: 0.875rem; font-family: var(--font-body); transition: border-color 0.2s; outline: none; }
+  .search-input:focus { border-color: var(--gold); }
+  .search-input::placeholder { color: var(--text-muted); }
+  .btn-search { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-search:hover { background: var(--gold-light); }
+
+  .filter-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); color: var(--gold); font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 100px; margin-bottom: 1rem; font-family: var(--font-head); }
+  .filter-tag a { color: var(--gold); opacity: 0.7; }
+  .filter-tag a:hover { opacity: 1; }
+
+  .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
+  .lcard { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: all 0.3s cubic-bezier(0.2,0,0,1); display: flex; flex-direction: column; position: relative; }
+  .lcard:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.3); }
+  .lcard-img-wrap { overflow: hidden; position: relative; }
+  .lcard-img { width: 100%; height: 180px; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  .lcard:hover .lcard-img { transform: scale(1.03); }
+  .lcard-img-placeholder { width: 100%; height: 180px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+  .lcard-sold-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; }
+  .lcard-sold-badge { background: #e53e3e; color: white; font-family: var(--font-head); font-weight: 800; font-size: 0.8rem; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 6px; transform: rotate(-3deg); }
+  .lcard-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+  .lcard-category { font-size: 0.65rem; font-weight: 700; font-family: var(--font-head); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .lcard-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 6px; text-decoration: none; display: block; }
+  .lcard-title::after { content: ''; position: absolute; inset: 0; }
+  .lcard-condition { display: inline-block; font-size: 0.65rem; font-weight: 600; font-family: var(--font-head); padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+  .cond-new      { background: rgba(74,222,128,0.1);  color: #4ade80; }
+  .cond-like_new { background: rgba(96,165,250,0.1);  color: #60a5fa; }
+  .cond-good     { background: rgba(251,191,36,0.1);  color: #fbbf24; }
+  .cond-fair     { background: rgba(156,163,175,0.1); color: #9ca3af; }
+
+  /* Cycling stats */
+  .stats-cycle { height: 22px; overflow: hidden; position: relative; margin-bottom: 8px; }
+  .stat-row {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.68rem; color: var(--text-muted);
+    font-family: var(--font-head); font-weight: 600;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+  }
+  .stat-row.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  .lcard-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+  .lcard-price  { font-family: var(--font-head); font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+  .lcard-meta   { font-size: 0.7rem; color: var(--text-muted); text-align: right; }
+  .lcard-meta a { color: var(--text-muted); text-decoration: none; position: relative; z-index: 1; }
+  .lcard-meta a:hover { color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 5rem 2rem; grid-column: 1/-1; }
+  .empty-icon { width: 64px; height: 64px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 1.75rem; }
+  .empty-state h4 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .empty-state p  { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+  .pagination-wrap { display: flex; justify-content: center; gap: 4px; margin-top: 3rem; }
+  .page-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.875rem; font-family: var(--font-head); font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+  .page-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .page-btn.active { background: var(--gold); border-color: var(--gold); color: #0d0d0d; }
+
+  @media (max-width: 640px) {
+    .page-wrap { padding: 1.5rem 1rem; }
+    .listing-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.875rem; }
+    .lcard-img { height: 140px; }
+    .mkt-header h1 { font-size: 1.5rem; }
+    .search-bar { flex-direction: column; }
+    .search-input-wrap { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+  <div class="mkt-header">
+    <div>
+      <h1>Marketplace</h1>
+      <p>Buy and sell items across campus</p>
+    </div>
+    {% if user.is_authenticated %}
+      <a href="{% url 'marketplace:listing-create' %}" class="btn-post">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Post Listing
+      </a>
+    {% endif %}
+  </div>
+
+  <form method="GET" id="cat-form-main">
+    <input type="hidden" name="category" id="real-cat-main" value="{{ active_category }}">
+    <input type="hidden" name="subcategory" id="real-subcat-main" value="{{ active_subcategory }}">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search listings..." class="search-input">
+      </div>
+      {% include 'components/cat_dropdown.html' with categories=categories active_category=active_category active_subcategory=active_subcategory dropdown_id="main" %}
+      <button type="submit" class="btn-search">Search</button>
+    </div>
+  </form>
+
+  {% if query or active_category or active_subcategory %}
+    <div class="mb-3">
+      <span class="filter-tag">
+        {% if query %}"{{ query }}"{% endif %}
+        {% if active_category %} · {% for cat in categories %}{% if cat.slug == active_category %}{{ cat.name }}{% endif %}{% endfor %}{% endif %}
+        {% if active_subcategory %} › {{ active_subcategory }}{% endif %}
+        <a href="{% url 'marketplace:listing-list' %}" title="Clear">✕</a>
+      </span>
+    </div>
+  {% endif %}
+
+  <div class="listing-grid">
+    {% for listing in page_obj %}
+      <div class="lcard">
+        <div class="lcard-img-wrap">
+          {% with listing.primary_image as img %}
+            {% if img %}
+              <img src="{{ img.image.url }}" class="lcard-img" alt="{{ listing.title }}">
+            {% else %}
+              <div class="lcard-img-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+              </div>
+            {% endif %}
+          {% endwith %}
+          {% if listing.is_sold %}
+            <div class="lcard-sold-overlay"><span class="lcard-sold-badge">SOLD</span></div>
+          {% endif %}
+        </div>
+        <div class="lcard-body">
+          {% if listing.category %}<div class="lcard-category">{{ listing.category.name }}</div>{% endif %}
+          <a href="{{ listing.get_absolute_url }}" class="lcard-title">{{ listing.title|truncatechars:55 }}</a>
+          <span class="lcard-condition cond-{{ listing.condition }}">{{ listing.get_condition_display }}</span>
+
+          {# ── Cycling stats: Views → Likes → Comments ── #}
+          <div class="stats-cycle">
+            <div class="stat-row on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              {{ listing.view_count }} Views
+            </div>
+            <div class="stat-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+              {{ listing.like_count|default:0 }} Likes
+            </div>
+            <div class="stat-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              {{ listing.comment_count|default:0 }} Comments
+            </div>
+          </div>
+
+          <div class="lcard-footer">
+            <div class="lcard-price">₦{{ listing.price|floatformat:0 }}</div>
+            <div class="lcard-meta">
+              {% if listing.location %}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                {{ listing.location|truncatechars:18 }}<br>
+              {% endif %}
+              <a href="{% url 'accounts:profile' listing.seller.username %}">{{ listing.seller.username }}</a>
+              · {{ listing.created_at|timesince|slice:":8" }} ago
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-icon">🛒</div>
+        <h4>No listings found</h4>
+        {% if query or active_category %}
+          <p>Try a different search or clear the filters.</p>
+          <a href="{% url 'marketplace:listing-list' %}" class="btn-post">Clear Filters</a>
+        {% else %}
+          <p>Be the first to post something!</p>
+          {% if user.is_authenticated %}
+            <a href="{% url 'marketplace:listing-create' %}" class="btn-post">Post a Listing</a>
+          {% else %}
+            <a href="{% url 'accounts:register' %}" class="btn-post">Register to Post</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="pagination-wrap">
+      {% if page_obj.has_previous %}<a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">← Prev</a>{% endif %}
+      {% for num in page_obj.paginator.page_range %}<a class="page-btn {% if page_obj.number == num %}active{% endif %}" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">{{ num }}</a>{% endfor %}
+      {% if page_obj.has_next %}<a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">Next →</a>{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Cycling stats — rotate every 2.8s */
+(function() {
+  function startCycle(wrap) {
+    var rows = wrap.querySelectorAll('.stat-row');
+    if (rows.length < 2) return;
+    var cur = 0;
+    setInterval(function() {
+      rows[cur].classList.remove('on');
+      cur = (cur + 1) % rows.length;
+      rows[cur].classList.add('on');
+    }, 2800);
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          document.querySelectorAll('.stats-cycle').forEach(startCycle);
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.05 });
+    var g = document.querySelector('.listing-grid');
+    if (g) io.observe(g); else document.querySelectorAll('.stats-cycle').forEach(startCycle);
+  } else {
+    document.querySelectorAll('.stats-cycle').forEach(startCycle);
+  }
+})();
+</script>
+{% endblock %}

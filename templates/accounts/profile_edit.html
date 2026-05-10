@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Profile — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .edit-wrap { max-width: 700px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  .edit-header { margin-bottom: 2rem; }
+  .edit-header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .edit-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .edit-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; }
+  .edit-section-label { font-family: var(--font-head); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--border); }
+  .btn-save { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; padding: 11px 28px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-save:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
+  .btn-cancel { background: transparent; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; padding: 11px 24px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-cancel:hover { border-color: var(--gold); color: var(--gold); }
+  /* Override crispy form styles for dark theme */
+  .form-control, .form-select { background: var(--bg-elevated) !important; border-color: var(--border) !important; color: var(--text) !important; }
+  .form-control:focus, .form-select:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important; background: var(--bg-elevated) !important; }
+  label { color: var(--text-muted) !important; font-size: 0.8rem !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-wrap">
+  <div class="edit-header">
+    <h1>Edit Profile</h1>
+    <p>Update how others see you on UniTraX</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="edit-card">
+      <div class="edit-section-label">Personal Information</div>
+      {{ user_form|crispy }}
+    </div>
+
+    <div class="edit-card">
+      <div class="edit-section-label">Profile Details</div>
+      {{ profile_form|crispy }}
+    </div>
+
+    <div style="display:flex;gap:0.875rem;flex-wrap:wrap;">
+      <button type="submit" class="btn-save">Save Changes</button>
+      <a href="{% url 'accounts:profile' user.username %}" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

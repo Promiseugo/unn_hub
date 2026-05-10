@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - var(--nav-height) - 80px);
+    width: 100vw;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  /* Logo mark */
+  .auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    text-decoration: none;
+  }
+
+  .auth-logo-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-logo-text {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .auth-logo-text span { color: var(--gold); }
+
+  /* Heading */
+  .auth-heading {
+    font-family: var(--font-head);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .auth-sub {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  /* Form card */
+  .auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Field groups */
+  .field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-family: var(--font-head);
+    letter-spacing: 0.02em;
+  }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+  }
+
+  .field-input::placeholder { color: var(--text-muted); }
+
+  /* Password field wrapper */
+  .password-wrap {
+    position: relative;
+  }
+
+  .password-wrap .field-input {
+    padding-right: 46px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .password-toggle:hover { color: var(--gold); }
+
+  /* Forgot link */
+  .forgot-row {
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .forgot-link {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+
+  .forgot-link:hover { color: var(--gold); }
+
+  /* Submit button */
+  .btn-auth {
+    width: 100%;
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 13px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-auth:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+  }
+
+  /* Error messages from Django */
+  .auth-errors {
+    background: rgba(229,62,62,0.08);
+    border: 1px solid rgba(229,62,62,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    color: #fc8181;
+  }
+
+  .auth-errors ul { margin: 0; padding-left: 1.25rem; }
+  .auth-errors li { margin: 2px 0; }
+
+  .auth-footer {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .auth-footer a { color: var(--gold); }
+  .auth-footer a:hover { color: var(--gold-light); }
+
+  /* ── Responsive ─────────────────────────── */
+  @media (max-width: 480px) {
+    .auth-card { padding: 1.5rem 1.25rem; }
+    .auth-heading { font-size: 1.35rem; }
+    .auth-wrap { padding: 2rem 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;">
+  <div class="auth-box">
+
+    <!-- Logo -->
+    <a href="{% url 'landing' %}" class="auth-logo">
+      <div class="auth-logo-icon">
+        <img src="{% static 'images/ux_logo.png' %}" style="width:26px;height:26px;object-fit:contain;" alt="UniTraX">
+      </div>
+      <div class="auth-logo-text">UniTra<span>X</span></div>
+    </a>
+
+    <h1 class="auth-heading">Welcome back</h1>
+    <p class="auth-sub">Sign in to your UniTraX account</p>
+
+    <div class="auth-card">
+      <form method="POST" id="loginForm">
+        {% csrf_token %}
+
+        <!-- Show Django form errors -->
+        {% if form.non_field_errors %}
+          <div class="auth-errors">
+            <ul>
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <!-- Email field -->
+        <div class="field-group">
+          <label class="field-label" for="id_username">Email Address</label>
+          <input type="email"
+                 id="id_username"
+                 name="username"
+                 value="{{ form.username.value|default:'' }}"
+                 placeholder="your@email.com"
+                 class="field-input"
+                 autocomplete="email"
+                 required>
+          {% if form.username.errors %}
+            <div style="color:#fc8181;font-size:0.78rem;margin-top:4px;">{{ form.username.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Password field with show/hide -->
+        <div class="field-group">
+          <label class="field-label" for="id_password">Password</label>
+          <div class="password-wrap">
+            <input type="password"
+                   id="id_password"
+                   name="password"
+                   placeholder="••••••••"
+                   class="field-input"
+                   autocomplete="current-password"
+                   required>
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Show/hide password">
+              <svg id="eyeShow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeHide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          {% if form.password.errors %}
+            <div style="color:#fc8181;font-size:0.78rem;margin-top:4px;">{{ form.password.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Forgot password -->
+        <div class="forgot-row">
+          <a href="{% url 'accounts:password-reset' %}" class="forgot-link">Forgot your password?</a>
+        </div>
+
+        <button type="submit" class="btn-auth">Sign In</button>
+      </form>
+    </div>
+
+    <p class="auth-footer">
+      Don't have an account?
+      <a href="{% url 'accounts:register' %}">Create one free</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    var input = document.getElementById('id_password');
+    var eyeShow = document.getElementById('eyeShow');
+    var eyeHide = document.getElementById('eyeHide');
+
+    // Temporarily turn off all CSS transitions so display swap works instantly
+    eyeShow.style.transition = 'none';
+    eyeHide.style.transition = 'none';
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeShow.style.display = 'none';
+      eyeHide.style.display = 'block';
+    } else {
+      input.type = 'password';
+      eyeShow.style.display = 'block';
+      eyeHide.style.display = 'none';
+    }
+  });
+</script>
+{% endblock %}

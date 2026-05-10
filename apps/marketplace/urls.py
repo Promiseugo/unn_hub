@@ -4,7 +4,7 @@ from . import views
 app_name = 'marketplace'
 
 urlpatterns = [
-    path('', views.listing_list, name='listing-list'),
+    path('listings/', views.listing_list, name='listing-list'),
     path('listings/create/', views.listing_create, name='listing-create'),
     path('listings/<uuid:pk>/', views.listing_detail, name='listing-detail'),
     path('listings/<uuid:pk>/edit/', views.listing_edit, name='listing-edit'),

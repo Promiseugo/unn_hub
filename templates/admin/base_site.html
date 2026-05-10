@@ -1,0 +1,483 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | UniTraX Admin{% endblock %}
+
+{% block branding %}
+{% load static %}
+<div id="site-name" style="display:flex;align-items:center;gap:10px;">
+  <div style="width:34px;height:34px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+    <img src="{% static 'images/ux_logo.png' %}" style="width:24px;height:24px;object-fit:contain;" alt="UniTraX">
+  </div>
+  <a href="{% url 'admin:index' %}" style="color:#c9a84c;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;text-decoration:none;letter-spacing:-0.02em;">
+    UniTra<span style="color:#f0f0f0;">X</span>
+    <span style="color:#666;font-size:0.65rem;font-weight:500;margin-left:8px;letter-spacing:0.1em;text-transform:uppercase;">Admin</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* -- Root Variables ------------------- */
+  :root {
+    --admin-bg:       #0d0d0d;
+    --admin-card:     #161616;
+    --admin-elevated: #1e1e1e;
+    --admin-border:   rgba(255,255,255,0.08);
+    --admin-text:     #f0f0f0;
+    --admin-muted:    #888;
+    --admin-gold:     #c9a84c;
+    --admin-gold-l:   #e8c96a;
+    --admin-green:    #4ade80;
+    --admin-red:      #fc8181;
+    --admin-blue:     #60a5fa;
+    --admin-radius:   10px;
+  }
+
+  /* -- Reset & Base --------------------- */
+  * { box-sizing: border-box; }
+
+  body, #container {
+    background: var(--admin-bg) !important;
+    color: var(--admin-text) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
+  }
+
+  a { color: var(--admin-gold) !important; }
+  a:hover { color: var(--admin-gold-l) !important; }
+
+  h1, h2, h3, h4, .breadcrumbs a, caption {
+    font-family: 'Syne', sans-serif !important;
+  }
+
+  /* -- Header / Nav --------------------- */
+  #header {
+    background: #0a0a0a !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    padding: 0 2rem !important;
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  #branding { flex: 1; }
+
+  #user-tools {
+    color: var(--admin-muted) !important;
+    font-size: 0.8rem !important;
+  }
+
+  #user-tools a {
+    color: var(--admin-muted) !important;
+    border: 1px solid var(--admin-border) !important;
+    padding: 4px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s !important;
+  }
+
+  #user-tools a:hover {
+    color: var(--admin-gold) !important;
+    border-color: var(--admin-gold) !important;
+  }
+
+  /* -- Breadcrumbs ---------------------- */
+  div.breadcrumbs {
+    background: var(--admin-card) !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    padding: 10px 2rem !important;
+    font-size: 0.8rem !important;
+    color: var(--admin-muted) !important;
+  }
+
+  div.breadcrumbs a { color: var(--admin-muted) !important; }
+  div.breadcrumbs a:hover { color: var(--admin-gold) !important; }
+
+  /* -- Sidebar nav ---------------------- */
+  #nav-sidebar, .toggle-nav-sidebar {
+    background: var(--admin-card) !important;
+    border-right: 1px solid var(--admin-border) !important;
+  }
+
+  #nav-sidebar .current-app .section:link,
+  #nav-sidebar .current-app .section:visited {
+    color: var(--admin-gold) !important;
+    font-weight: 700 !important;
+  }
+
+  .toggle-nav-sidebar {
+    color: var(--admin-muted) !important;
+    border-color: var(--admin-border) !important;
+  }
+
+  /* -- Content area --------------------- */
+  #content, #content-main {
+    background: transparent !important;
+    color: var(--admin-text) !important;
+  }
+
+  #content-main { padding: 1.5rem !important; }
+
+  h1#site-name a { color: var(--admin-gold) !important; }
+
+  /* Page title */
+  #content h1 {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--admin-text) !important;
+    margin-bottom: 1.5rem !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  /* -- Module / app boxes --------------- */
+  .module {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: var(--admin-radius) !important;
+    overflow: hidden !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: none !important;
+  }
+
+  .module caption, .module h2 {
+    background: var(--admin-elevated) !important;
+    color: var(--admin-gold) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    margin: 0 !important;
+  }
+
+  .module table { width: 100% !important; }
+
+  .module th {
+    background: transparent !important;
+    color: var(--admin-muted) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    padding: 8px 14px !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  .module td {
+    color: var(--admin-text) !important;
+    padding: 9px 14px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    font-size: 0.875rem !important;
+  }
+
+  .module tr:last-child td { border-bottom: none !important; }
+
+  .module tr:hover td {
+    background: rgba(201,168,76,0.04) !important;
+  }
+
+  /* App links on index page */
+  .app-accounts th, .app-marketplace th,
+  .app-services th, .app-messaging th,
+  .app-reviews th, .app-rentals th {
+    color: var(--admin-gold) !important;
+  }
+
+  /* -- Dashboard recent actions --------- */
+  #content-related {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: var(--admin-radius) !important;
+    overflow: hidden !important;
+  }
+
+  #content-related h2 {
+    background: var(--admin-elevated) !important;
+    color: var(--admin-gold) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  #content-related h3 {
+    color: var(--admin-muted) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 8px 14px 4px !important;
+    margin: 0 !important;
+  }
+
+  #content-related ul {
+    padding: 0 14px 10px !important;
+    margin: 0 !important;
+  }
+
+  #content-related li {
+    padding: 4px 0 !important;
+    font-size: 0.8rem !important;
+    border: none !important;
+    color: var(--admin-text) !important;
+    list-style: none !important;
+  }
+
+  /* -- Change list (table view) --------- */
+  #changelist {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: var(--admin-radius) !important;
+    overflow: hidden !important;
+  }
+
+  #changelist-search {
+    background: var(--admin-elevated) !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    padding: 10px 14px !important;
+  }
+
+  #changelist-search input {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+  }
+
+  #changelist-search input:focus {
+    border-color: var(--admin-gold) !important;
+    outline: none !important;
+  }
+
+  #changelist table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  #changelist thead th {
+    background: var(--admin-elevated) !important;
+    color: var(--admin-muted) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  #changelist thead th a,
+  #changelist thead th a:visited {
+    color: var(--admin-muted) !important;
+  }
+
+  #changelist thead th a:hover { color: var(--admin-gold) !important; }
+
+  #changelist tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    transition: background 0.15s !important;
+  }
+
+  #changelist tbody tr:hover {
+    background: rgba(201,168,76,0.04) !important;
+  }
+
+  #changelist tbody td {
+    color: var(--admin-text) !important;
+    padding: 10px 14px !important;
+    font-size: 0.875rem !important;
+    border: none !important;
+  }
+
+  #changelist tbody td a {
+    color: var(--admin-gold) !important;
+    font-weight: 600 !important;
+  }
+
+  /* Checkboxes */
+  input[type="checkbox"] { accent-color: var(--admin-gold) !important; }
+
+  /* Pagination */
+  .paginator {
+    background: var(--admin-elevated) !important;
+    border-top: 1px solid var(--admin-border) !important;
+    color: var(--admin-muted) !important;
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .paginator a { color: var(--admin-gold) !important; }
+
+  /* -- Forms (add/change page) ---------- */
+  .form-row, .aligned {
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    padding: 12px 14px !important;
+  }
+
+  .form-row label, .aligned label {
+    color: var(--admin-muted) !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+  }
+
+  input[type=text], input[type=email], input[type=password],
+  input[type=number], input[type=url], input[type=date],
+  textarea, select {
+    background: var(--admin-elevated) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+    border-radius: 6px !important;
+    padding: 7px 10px !important;
+    font-size: 0.875rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--admin-gold) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important;
+  }
+
+  /* -- Buttons -------------------------- */
+  .button, input[type=submit], input[type=button],
+  .submit-row input, a.button {
+    background: var(--admin-gold) !important;
+    color: #0d0d0d !important;
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 18px !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+    text-decoration: none !important;
+  }
+
+  .button:hover, input[type=submit]:hover,
+  .submit-row input:hover {
+    background: var(--admin-gold-l) !important;
+    color: #0d0d0d !important;
+  }
+
+  .button.default, input[type=submit].default {
+    background: var(--admin-gold) !important;
+  }
+
+  /* Delete button */
+  .deletelink, .deletelink-box a {
+    background: rgba(229,62,62,0.1) !important;
+    color: var(--admin-red) !important;
+    border: 1px solid rgba(229,62,62,0.25) !important;
+  }
+
+  .deletelink:hover { background: rgba(229,62,62,0.2) !important; }
+
+  /* -- Messages / alerts ---------------- */
+  ul.messagelist li {
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 6px !important;
+    padding: 10px 14px !important;
+  }
+
+  ul.messagelist .success {
+    background: rgba(74,222,128,0.1) !important;
+    border: 1px solid rgba(74,222,128,0.2) !important;
+    color: var(--admin-green) !important;
+  }
+
+  ul.messagelist .error, ul.messagelist .warning {
+    background: rgba(229,62,62,0.1) !important;
+    border: 1px solid rgba(229,62,62,0.2) !important;
+    color: var(--admin-red) !important;
+  }
+
+  /* -- Filters sidebar ------------------ */
+  #changelist-filter {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: var(--admin-radius) !important;
+    overflow: hidden !important;
+  }
+
+  #changelist-filter h2 {
+    background: var(--admin-elevated) !important;
+    color: var(--admin-gold) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  #changelist-filter h3 {
+    color: var(--admin-muted) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 8px 14px 2px !important;
+    margin: 0 !important;
+  }
+
+  #changelist-filter ul {
+    padding: 2px 0 8px !important;
+    margin: 0 !important;
+  }
+
+  #changelist-filter li {
+    padding: 3px 14px !important;
+    font-size: 0.8rem !important;
+    list-style: none !important;
+    border: none !important;
+  }
+
+  #changelist-filter li a { color: var(--admin-muted) !important; }
+  #changelist-filter li a:hover { color: var(--admin-gold) !important; }
+  #changelist-filter li.selected a { color: var(--admin-gold) !important; font-weight: 600 !important; }
+
+  /* -- Inline tabular ------------------- */
+  .inline-group {
+    background: var(--admin-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: var(--admin-radius) !important;
+    overflow: hidden !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .inline-group h2 {
+    background: var(--admin-elevated) !important;
+    color: var(--admin-gold) !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  /* -- Misc ----------------------------- */
+  .help { color: var(--admin-muted) !important; font-size: 0.78rem !important; }
+  .errornote { color: var(--admin-red) !important; background: rgba(229,62,62,0.08) !important; border: 1px solid rgba(229,62,62,0.2) !important; border-radius: 6px !important; padding: 8px 12px !important; }
+  .errorlist li { color: var(--admin-red) !important; font-size: 0.8rem !important; }
+  .submit-row { background: var(--admin-elevated) !important; border-top: 1px solid var(--admin-border) !important; padding: 10px 14px !important; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--admin-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--admin-elevated); border-radius: 3px; }
+</style>
+{% endblock %}

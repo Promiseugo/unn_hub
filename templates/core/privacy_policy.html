@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .legal-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+  .legal-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .legal-badge {
+    display: inline-block;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+    font-family: var(--font-head);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .legal-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px;
+  }
+  .legal-updated {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .legal-intro {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .legal-section {
+    margin-bottom: 2.5rem;
+  }
+  .legal-section h2 {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .legal-section h2::before {
+    content: '';
+    width: 4px;
+    height: 1em;
+    background: var(--gold);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legal-section p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    margin-bottom: 0.75rem;
+  }
+  .legal-section ul {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .legal-section ul li { margin-bottom: 4px; }
+  .legal-contact-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 2.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .legal-contact-icon {
+    width: 44px; height: 44px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .legal-contact-card h3 {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .legal-contact-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  .legal-contact-card a { color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+
+  <div class="legal-header">
+    <div class="legal-badge">Legal</div>
+    <h1>Privacy Policy</h1>
+    <p class="legal-updated">Last updated: March 2026</p>
+  </div>
+
+  <div class="legal-intro">
+    UniTraX is a campus marketplace built for students. This policy explains what data we collect, why we collect it, and how we protect it. We keep it simple — no unnecessary data, no selling your information.
+  </div>
+
+  <div class="legal-section">
+    <h2>What We Collect</h2>
+    <p>When you create an account or use UniTraX, we collect:</p>
+    <ul>
+      <li><strong>Account information</strong> — your name, username, and email address</li>
+      <li><strong>Profile information</strong> — optional details like department, level, bio, and avatar</li>
+      <li><strong>Listing content</strong> — titles, descriptions, prices, images, and videos you upload</li>
+      <li><strong>Messages</strong> — private conversations between users on the platform</li>
+      <li><strong>Usage data</strong> — pages visited and actions taken within the platform</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>How We Use Your Data</h2>
+    <p>Your data is used exclusively to operate UniTraX:</p>
+    <ul>
+      <li>To display your listings and profile to other campus users</li>
+      <li>To enable messaging between buyers, sellers, and landlords</li>
+      <li>To protect accounts through login security and brute-force prevention</li>
+      <li>To send transactional emails such as password resets</li>
+      <li>To improve the platform based on how it is used</li>
+    </ul>
+    <p>We do not sell, rent, or share your personal data with third parties for marketing purposes.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Images and Media</h2>
+    <p>Photos and videos you upload for listings are stored on our servers and are publicly visible to other users of the platform. Do not upload images that contain sensitive personal information.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Account Security</h2>
+    <p>Passwords are hashed using industry-standard algorithms and are never stored in plain text. Accounts are temporarily locked after repeated failed login attempts to prevent unauthorised access.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Data Retention</h2>
+    <p>Your data is retained for as long as your account is active. If you wish to have your account and associated data deleted, contact us at the address below. Listings you remove are deactivated but may be retained in backups for a short period.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Cookies</h2>
+    <p>UniTraX uses session cookies to keep you logged in and a theme preference cookie stored in your browser's local storage. We do not use advertising or tracking cookies.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Your Rights</h2>
+    <p>You have the right to access, correct, or request deletion of your personal data at any time. Reach out to us directly and we will respond within 7 days.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Changes to This Policy</h2>
+    <p>We may update this policy as the platform evolves. Significant changes will be communicated via email. Continued use of UniTraX after changes are posted constitutes acceptance.</p>
+  </div>
+
+  <div class="legal-contact-card">
+    <div class="legal-contact-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Questions about this policy?</h3>
+      <p>Email us at <a href="mailto:support@unitrax.com">support@unitrax.com</a> and we'll get back to you within 7 days.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

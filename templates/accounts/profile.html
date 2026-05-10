@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }} — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  /* ── Profile layout ──────────────────── */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .profile-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Sidebar ─────────────────────────── */
+  .profile-sidebar {
+    position: sticky;
+    top: calc(var(--nav-height) + 1rem);
+  }
+
+  .profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .profile-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+  }
+
+  .profile-avatar-placeholder {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #8b6914);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(201,168,76,0.3);
+  }
+
+  .profile-name {
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  .profile-handle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.875rem;
+  }
+
+  /* Rating stars */
+  .profile-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 100px;
+    padding: 4px 12px;
+    margin-bottom: 1rem;
+  }
+
+  .profile-stars { color: #fbbf24; font-size: 0.85rem; letter-spacing: 1px; }
+  .profile-rating-num { font-size: 0.75rem; color: var(--text-muted); }
+
+  .profile-bio {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+
+  /* Info tags */
+  .profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .profile-tag {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: var(--font-head);
+  }
+
+  /* Sidebar action buttons */
+  .btn-sidebar {
+    display: block;
+    width: 100%;
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+  }
+
+  .btn-sidebar:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
+
+  .btn-sidebar-ghost {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .btn-sidebar-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── Main Content ─────────────────────── */
+  .profile-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .profile-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-section-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .section-count {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 100px;
+    font-family: var(--font-head);
+  }
+
+  /* Mini listing cards */
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.875rem;
+  }
+
+  .mini-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.25s;
+    text-decoration: none;
+  }
+
+  .mini-card:hover {
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-3px);
+  }
+
+  .mini-img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+  }
+
+  .mini-img-placeholder {
+    width: 100%;
+    height: 110px;
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+  }
+
+  .mini-body {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .mini-title {
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .mini-price {
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--gold);
+  }
+
+  /* Service mini card */
+  .service-mini {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.25s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .service-mini:hover {
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-2px);
+  }
+
+  .service-mini-title {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .service-mini-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .service-mini-price {
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--gold);
+  }
+
+  /* Reviews */
+  .review-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .review-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .review-reviewer {
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rev-av {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.65rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .rev-stars { color: #fbbf24; font-size: 0.8rem; }
+  .rev-time { font-size: 0.75rem; color: var(--text-muted); }
+  .rev-comment { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+  .empty-section {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    padding: 1rem 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrap">
+  <div class="profile-grid">
+
+    <!-- Sidebar -->
+    <div class="profile-sidebar">
+      <div class="profile-card">
+
+        <!-- Avatar -->
+        <div class="profile-avatar-wrap">
+          {% if profile_user.profile.avatar %}
+            <img src="{{ profile_user.profile.avatar.url }}"
+                 class="profile-avatar" alt="{{ profile_user.username }}">
+          {% else %}
+            <div class="profile-avatar-placeholder">
+              {{ profile_user.username|first|upper }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="profile-name">{{ profile_user.profile.display_name }}</div>
+        <div class="profile-handle">@{{ profile_user.username }}</div>
+
+        {% if profile_user.profile.avg_rating > 0 %}
+          <div class="profile-rating">
+            <span class="profile-stars">
+              {% with avg=profile_user.profile.avg_rating|floatformat:"0" %}
+                {% for i in "12345" %}{% if forloop.counter <= avg|add:"0" %}★{% else %}☆{% endif %}{% endfor %}
+              {% endwith %}
+            </span>
+            <span class="profile-rating-num">
+              {{ profile_user.profile.avg_rating }}/5
+              ({{ profile_user.profile.total_reviews }})
+            </span>
+          </div>
+        {% endif %}
+
+        {% if profile_user.profile.bio %}
+          <p class="profile-bio">{{ profile_user.profile.bio }}</p>
+        {% endif %}
+
+        <div class="profile-tags">
+          {% if profile_user.profile.department %}
+            <span class="profile-tag">🏫 {{ profile_user.profile.department }}</span>
+          {% endif %}
+          {% if profile_user.profile.level %}
+            <span class="profile-tag">📚 {{ profile_user.profile.level }}</span>
+          {% endif %}
+        </div>
+
+        {% if user == profile_user %}
+          <a href="{% url 'accounts:profile-edit' %}" class="btn-sidebar">✏ Edit Profile</a>
+        {% else %}
+          <a href="{% url 'messaging:new-thread' profile_user.username %}" class="btn-sidebar">
+            💬 Send Message
+          </a>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div>
+
+      <!-- Listings -->
+      <div class="profile-section">
+        <div class="profile-section-head">
+          <h2 class="profile-section-title">Listings</h2>
+          <span class="section-count">{{ listings.count }}</span>
+        </div>
+        {% if listings %}
+          <div class="mini-grid">
+            {% for listing in listings %}
+              <a href="{{ listing.get_absolute_url }}" class="mini-card">
+                {% with listing.primary_image as img %}
+                  {% if img %}
+                    <img src="{{ img.image.url }}" class="mini-img" alt="{{ listing.title }}">
+                  {% else %}
+                    <div class="mini-img-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="21,15 16,10 5,21"/></svg>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+                <div class="mini-body">
+                  <div class="mini-title">{{ listing.title|truncatechars:35 }}</div>
+                  <div class="mini-price">₦{{ listing.price|floatformat:0 }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty-section">No active listings.</p>
+        {% endif %}
+      </div>
+
+      <!-- Services -->
+      {% if services %}
+        <div class="profile-section">
+          <div class="profile-section-head">
+            <h2 class="profile-section-title">Services</h2>
+            <span class="section-count">{{ services.count }}</span>
+          </div>
+          <div class="mini-grid">
+            {% for service in services %}
+              <a href="{{ service.get_absolute_url }}" class="service-mini">
+                <div class="service-mini-title">{{ service.title|truncatechars:40 }}</div>
+                <div class="service-mini-desc">{{ service.description|truncatechars:70 }}</div>
+                <div class="service-mini-price">
+                  ₦{{ service.price|floatformat:0 }}
+                  <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem">/ {{ service.price_label }}</span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Reviews -->
+      <div class="profile-section">
+        <div class="profile-section-head">
+          <h2 class="profile-section-title">Reviews</h2>
+          {% if reviews %}<span class="section-count">{{ reviews.count }}</span>{% endif %}
+        </div>
+        {% for review in reviews %}
+          <div class="review-item">
+            <div class="review-top">
+              <div class="review-reviewer">
+                <div class="rev-av">{{ review.reviewer.username|first|upper }}</div>
+                {{ review.reviewer.username }}
+                <span class="rev-stars">
+                  {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                </span>
+              </div>
+              <span class="rev-time">{{ review.created_at|timesince }} ago</span>
+            </div>
+            {% if review.comment %}
+              <p class="rev-comment">{{ review.comment }}</p>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="empty-section">No reviews yet.</p>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

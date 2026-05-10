@@ -4,10 +4,6 @@ from .models import User, Profile
 
 
 class RegisterForm(UserCreationForm):
-    """
-    Extends Django's built-in UserCreationForm to add email
-    as required and include first/last name fields.
-    """
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=50, required=True)
     last_name = forms.CharField(max_length=50, required=True)
@@ -18,18 +14,32 @@ class RegisterForm(UserCreationForm):
                   'password1', 'password2')
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
+        # Normalize to lowercase so Promise@gmail.com == promise@gmail.com
+        email = self.cleaned_data.get('email', '').lower().strip()
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
+            raise forms.ValidationError("An account with this email already exists.")
         return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Always store email in lowercase
+        user.email = self.cleaned_data['email'].lower().strip()
+        if commit:
+            user.save()
+        return user
 
 
 class LoginForm(AuthenticationForm):
     """
-    Uses Django's built-in auth form — no changes needed.
-    Kept here for a consistent import pattern.
+    Override to normalize email to lowercase before authentication.
+    USERNAME_FIELD is 'email' so self.username_field is the email field.
     """
-    pass
+    def clean(self):
+        # Lowercase the email before Django attempts authentication
+        username = self.cleaned_data.get('username', '')
+        if username:
+            self.cleaned_data['username'] = username.lower().strip()
+        return super().clean()
 
 
 class ProfileUpdateForm(forms.ModelForm):

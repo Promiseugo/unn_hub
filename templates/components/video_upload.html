@@ -1,0 +1,160 @@
+{# ═══════════════════════════════════════════════════════
+   Reusable video upload component
+   Usage: {% include 'components/video_upload.html' %}
+   Edit mode: {% include 'components/video_upload.html' with existing_video=listing.video %}
+   ═══════════════════════════════════════════════════════ #}
+<div class="video-upload-section">
+
+  <h6 class="upload-section-label">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2">
+      <polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+    </svg>
+    Video
+    <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;margin-left:6px;">(Optional)</span>
+  </h6>
+
+  <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.875rem;line-height:1.5;">
+    Upload one short video — a walkthrough, demo, or introduction.
+    MP4, MOV or WebM only. Maximum 50MB.
+  </p>
+
+  <div class="video-drop-zone" id="videoDropZone">
+    <input type="file" name="video"
+           accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
+           id="videoInput" style="display:none">
+
+    <div class="video-drop-inner" id="videoDropInner">
+      <div style="width:44px;height:44px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8">
+          <polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>
+      </div>
+      <p style="color:var(--text);font-size:0.875rem;font-weight:600;margin:0 0 4px;">
+        Click to upload or drag &amp; drop
+      </p>
+      <p style="color:var(--text-muted);font-size:0.75rem;margin:0;">
+        MP4, MOV, WebM &middot; Max 50MB
+      </p>
+    </div>
+
+    <div class="video-preview" id="videoPreview" style="display:none">
+      <video id="videoPreviewEl" controls
+             style="width:100%;max-height:240px;border-radius:8px;background:#000;"></video>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <span id="videoFileName" style="font-size:0.8rem;color:var(--text-muted);"></span>
+        <button type="button" id="videoClear"
+                style="background:rgba(229,62,62,0.1);border:1px solid rgba(229,62,62,0.2);color:#fc8181;font-size:0.75rem;padding:4px 10px;border-radius:6px;cursor:pointer;">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# Show existing video only in edit mode — use string check, not FieldFile bool #}
+  {% with ev=existing_video %}
+  {% if ev %}{% with evname=ev.name %}{% if evname %}
+    <div style="margin-top:0.875rem;">
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">Current video:</p>
+      <video controls style="width:100%;max-height:200px;border-radius:8px;background:#000;display:block;">
+        <source src="{{ ev.url }}">
+      </video>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">
+        Upload a new video above to replace it.
+      </p>
+    </div>
+  {% endif %}{% endwith %}{% endif %}
+  {% endwith %}
+
+</div>
+
+<style>
+  .video-upload-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .upload-section-label {
+    font-family: var(--font-head);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.625rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .video-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .video-drop-zone:hover,
+  .video-drop-zone.dragging {
+    border-color: rgba(201,168,76,0.4);
+    background: rgba(201,168,76,0.03);
+  }
+  .video-drop-zone.has-file {
+    border-color: rgba(201,168,76,0.3);
+    background: rgba(201,168,76,0.04);
+    cursor: default;
+  }
+</style>
+
+<script>
+(function() {
+  var zone   = document.getElementById('videoDropZone');
+  var input  = document.getElementById('videoInput');
+  var inner  = document.getElementById('videoDropInner');
+  var prev   = document.getElementById('videoPreview');
+  var prevEl = document.getElementById('videoPreviewEl');
+  var fname  = document.getElementById('videoFileName');
+  var clear  = document.getElementById('videoClear');
+
+  zone.addEventListener('click', function() {
+    if (!zone.classList.contains('has-file')) input.click();
+  });
+
+  zone.addEventListener('dragover', function(e) {
+    e.preventDefault(); zone.classList.add('dragging');
+  });
+  zone.addEventListener('dragleave', function() {
+    zone.classList.remove('dragging');
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); zone.classList.remove('dragging');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+
+  input.addEventListener('change', function() {
+    if (input.files.length) handleFile(input.files[0]);
+  });
+
+  function handleFile(file) {
+    if (file.size > 50 * 1024 * 1024) {
+      alert('Video is too large. Maximum size is 50MB.');
+      return;
+    }
+    prevEl.src = URL.createObjectURL(file);
+    fname.textContent = file.name + ' (' + (file.size/(1024*1024)).toFixed(1) + 'MB)';
+    inner.style.display = 'none';
+    prev.style.display  = 'block';
+    zone.classList.add('has-file');
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+  }
+
+  clear.addEventListener('click', function(e) {
+    e.stopPropagation();
+    prevEl.src = ''; input.value = '';
+    inner.style.display = 'block';
+    prev.style.display  = 'none';
+    zone.classList.remove('has-file');
+  });
+})();
+</script>

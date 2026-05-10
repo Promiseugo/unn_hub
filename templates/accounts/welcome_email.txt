@@ -1,0 +1,10 @@
+Hi {{ user.username }},
+
+Welcome to {{ site_name }}.
+
+Your account has been created successfully. You can sign in any time at:
+{{ protocol }}://{{ domain }}{% url 'accounts:login' %}
+
+If you didn’t create this account, please contact support immediately.
+
+— {{ site_name }}

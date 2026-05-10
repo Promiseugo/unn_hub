@@ -7,6 +7,7 @@ from apps.core.models import BaseListingModel
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
+    icon = models.CharField(max_length=10, blank=True, help_text="Emoji icon e.g. 👕")
 
     class Meta:
         verbose_name_plural = 'Categories'
@@ -14,6 +15,24 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SubCategory(models.Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='subcategories',
+    )
+    name = models.CharField(max_length=100)
+    slug = models.SlugField()
+
+    class Meta:
+        verbose_name_plural = 'Sub Categories'
+        ordering = ['name']
+        unique_together = ('category', 'slug')
+
+    def __str__(self):
+        return f"{self.category.name} → {self.name}"
 
 
 class Listing(BaseListingModel):
@@ -35,6 +54,13 @@ class Listing(BaseListingModel):
         null=True,
         related_name='listings',
     )
+    subcategory = models.ForeignKey(
+        SubCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='listings',
+    )
     condition = models.CharField(
         max_length=20,
         choices=CONDITION_CHOICES,
@@ -45,6 +71,13 @@ class Listing(BaseListingModel):
         blank=True,
         help_text="e.g. Odim Hostel, Faculty of Engineering",
     )
+    video = models.FileField(
+        upload_to='listings/videos/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text="Optional. MP4, MOV or WebM. Max 50MB.",
+    )
+    view_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-created_at']
@@ -53,15 +86,11 @@ class Listing(BaseListingModel):
         return reverse('marketplace:listing-detail', kwargs={'pk': self.pk})
 
     def primary_image(self):
-        """Return primary image or first image if none set as primary."""
         img = self.images.filter(is_primary=True).first()
         return img or self.images.first()
 
 
 class ListingImage(models.Model):
-    """
-    Up to 5 images per listing. Enforced at the form level.
-    """
     listing = models.ForeignKey(
         Listing,
         on_delete=models.CASCADE,

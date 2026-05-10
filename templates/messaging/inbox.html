@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Inbox — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .inbox-wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  .inbox-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .inbox-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 2px;
+  }
+
+  .inbox-header p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  /* Thread list */
+  .thread-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .thread-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .thread-item:hover {
+    border-color: rgba(201,168,76,0.25);
+    background: var(--bg-elevated);
+  }
+
+  .thread-item.unread {
+    border-color: rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.04);
+  }
+
+  .thread-av {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #8b6914);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .thread-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .thread-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 3px;
+  }
+
+  .thread-name {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  .thread-time {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .thread-preview {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .thread-unread-badge {
+    background: #e53e3e;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 100px;
+    flex-shrink: 0;
+    font-family: var(--font-head);
+  }
+
+  .thread-arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  /* Empty state */
+  .inbox-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+  }
+
+  .inbox-empty-icon {
+    width: 64px; height: 64px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+  }
+
+  .inbox-empty h4 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .inbox-empty p { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem; }
+
+  .btn-browse {
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+  }
+
+  .btn-browse:hover { background: var(--gold-light); color: #0d0d0d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inbox-wrap">
+
+  <div class="inbox-header">
+    <h1>Inbox
+      {% if unread_count %}
+        <span style="font-size:0.9rem;background:#e53e3e;color:white;padding:3px 10px;border-radius:100px;vertical-align:middle;font-family:var(--font-body);">
+          {{ unread_count }} new
+        </span>
+      {% endif %}
+    </h1>
+    <p>Your conversations with buyers and sellers</p>
+  </div>
+
+  {% if thread_data %}
+    <div class="thread-list">
+      {% for item in thread_data %}
+        <a href="{% url 'messaging:thread-detail' item.thread.pk %}"
+           class="thread-item {% if item.unread %}unread{% endif %}">
+
+          <!-- Avatar -->
+          <div class="thread-av">
+            {% if item.other %}{{ item.other.username|first|upper }}{% else %}?{% endif %}
+          </div>
+
+          <!-- Body -->
+          <div class="thread-body">
+            <div class="thread-name-row">
+              <span class="thread-name">
+                {% if item.other %}{{ item.other.username }}{% else %}Unknown{% endif %}
+              </span>
+              <span class="thread-time">{{ item.thread.updated_at|timesince }} ago</span>
+            </div>
+            <div class="thread-preview">
+              {% if item.thread.subject %}
+                {{ item.thread.subject|truncatechars:60 }}
+              {% elif item.last_message %}
+                {{ item.last_message.body|truncatechars:60 }}
+              {% else %}
+                No messages yet
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Unread badge -->
+          {% if item.unread %}
+            <span class="thread-unread-badge">{{ item.unread }}</span>
+          {% endif %}
+
+          <!-- Arrow -->
+          <svg class="thread-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+
+        </a>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="inbox-empty">
+      <div class="inbox-empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h4>No messages yet</h4>
+      <p>Contact a seller from any listing to start a conversation.</p>
+      <a href="{% url 'marketplace:listing-list' %}" class="btn-browse">Browse Marketplace</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

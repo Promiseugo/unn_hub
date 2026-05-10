@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Services — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; }
+  .page-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .btn-post { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-post:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
+
+  .search-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .search-input-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+  .search-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px 9px 38px; font-size: 0.875rem; font-family: var(--font-body); transition: border-color 0.2s; outline: none; }
+  .search-input:focus { border-color: var(--gold); }
+  .search-input::placeholder { color: var(--text-muted); }
+  .btn-search { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-search:hover { background: var(--gold-light); }
+
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+  .svc-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; display: flex; flex-direction: column; transition: all 0.3s; position: relative; overflow: hidden; }
+  .svc-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0; transition: opacity 0.3s; }
+  .svc-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.25); }
+  .svc-card:hover::after { opacity: 1; }
+  .svc-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; flex-shrink: 0; }
+  .svc-icon svg { color: var(--gold); }
+  .svc-category { font-size: 0.65rem; font-weight: 700; font-family: var(--font-head); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .svc-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; text-decoration: none; display: block; line-height: 1.3; }
+  .svc-title::after { content: ''; position: absolute; inset: 0; }
+  .svc-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; flex: 1; }
+  .svc-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: auto; }
+  .svc-price { font-family: var(--font-head); font-size: 1rem; font-weight: 800; color: var(--gold); }
+  .svc-price-label { font-family: var(--font-body); font-weight: 400; font-size: 0.75rem; color: var(--text-muted); }
+  .svc-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .svc-delivery { font-size: 0.65rem; font-weight: 700; font-family: var(--font-head); padding: 2px 8px; border-radius: 4px; background: rgba(74,222,128,0.08); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+  .svc-author { font-size: 0.72rem; color: var(--text-muted); position: relative; z-index: 1; }
+  .svc-author a { color: var(--text-muted); }
+  .svc-author a:hover { color: var(--gold); }
+
+  .stats-cycle { height: 22px; overflow: hidden; position: relative; margin-bottom: 10px; }
+  .stat-row { position: absolute; inset: 0; display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+  .stat-row.on { opacity: 1; transform: translateY(0); }
+
+  .filter-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); color: var(--gold); font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 100px; margin-bottom: 1rem; font-family: var(--font-head); }
+  .filter-tag a { color: var(--gold); opacity: 0.7; }
+
+  .empty-state { text-align: center; padding: 5rem 2rem; }
+  .pagination-wrap { display: flex; justify-content: center; gap: 4px; margin-top: 3rem; }
+  .page-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.875rem; font-family: var(--font-head); font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; transition: all 0.2s; }
+  .page-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .page-btn.active { background: var(--gold); border-color: var(--gold); color: #0d0d0d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div>
+      <h1>Services</h1>
+      <p>Find tutors, repairs, delivery and more from fellow students</p>
+    </div>
+    {% if user.is_authenticated %}
+      <a href="{% url 'services:service-create' %}" class="btn-post">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Offer a Service
+      </a>
+    {% endif %}
+  </div>
+
+  <form method="GET" id="cat-form-svc">
+    <input type="hidden" name="category" id="real-cat-svc" value="{{ active_category }}">
+    <input type="hidden" name="subcategory" id="real-subcat-svc" value="{{ active_subcategory }}">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search services..." class="search-input">
+      </div>
+      {% include 'components/cat_dropdown.html' with categories=categories active_category=active_category active_subcategory=active_subcategory dropdown_id="svc" %}
+      <button type="submit" class="btn-search">Search</button>
+    </div>
+  </form>
+
+  {% if query or active_category or active_subcategory %}
+    <div class="mb-3">
+      <span class="filter-tag">
+        {% if query %}"{{ query }}"{% endif %}
+        {% if active_category %} · {% for cat in categories %}{% if cat.slug == active_category %}{{ cat.name }}{% endif %}{% endfor %}{% endif %}
+        {% if active_subcategory %} › {{ active_subcategory }}{% endif %}
+        <a href="{% url 'services:service-list' %}" title="Clear">✕</a>
+      </span>
+    </div>
+  {% endif %}
+
+  {% if page_obj.object_list %}
+    <div class="service-grid">
+      {% for service in page_obj %}
+        <div class="svc-card">
+          <div class="svc-icon">
+            {% if service.category %}{% with slug=service.category.slug %}
+              {% if "tutor" in slug or "teach" in slug %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              {% elif "repair" in slug or "tech" in slug %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              {% elif "design" in slug %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              {% elif "deliver" in slug %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              {% elif "photo" in slug or "video" in slug %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              {% else %}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              {% endif %}
+            {% endwith %}{% else %}
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {% endif %}
+          </div>
+
+          {% if service.category %}<div class="svc-category">{{ service.category.name }}</div>{% endif %}
+          <a href="{{ service.get_absolute_url }}" class="svc-title">{{ service.title }}</a>
+          <p class="svc-desc">{{ service.description|truncatechars:110 }}</p>
+
+          <div class="stats-cycle">
+            <div class="stat-row on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              {{ service.view_count }} Views
+            </div>
+            <div class="stat-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+              {{ service.like_count|default:0 }} Likes
+            </div>
+            <div class="stat-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              {{ service.comment_count|default:0 }} Comments
+            </div>
+          </div>
+
+          <div class="svc-footer">
+            <div>
+              <span class="svc-price">₦{{ service.price|floatformat:0 }}</span>
+              <span class="svc-price-label"> / {{ service.price_label }}</span>
+            </div>
+            <div class="svc-meta">
+              <span class="svc-delivery">{{ service.get_delivery_mode_display }}</span>
+              <span class="svc-author">by <a href="{% url 'accounts:profile' service.provider.username %}">{{ service.provider.username }}</a></span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <div class="pagination-wrap">
+        {% if page_obj.has_previous %}<a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">← Prev</a>{% endif %}
+        {% for num in page_obj.paginator.page_range %}<a class="page-btn {% if page_obj.number == num %}active{% endif %}" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">{{ num }}</a>{% endfor %}
+        {% if page_obj.has_next %}<a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_subcategory %}&subcategory={{ active_subcategory }}{% endif %}">Next →</a>{% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <div style="font-size:2rem;margin-bottom:1rem;">🛠️</div>
+      <h4>No services found</h4>
+      {% if query or active_category %}<p>Try different terms or clear filters.</p><a href="{% url 'services:service-list' %}" class="btn-post">Clear Filters</a>
+      {% else %}<p>Be the first to offer a service!</p>{% if user.is_authenticated %}<a href="{% url 'services:service-create' %}" class="btn-post">Offer a Service</a>{% endif %}{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  function startCycle(wrap) {
+    var rows = wrap.querySelectorAll('.stat-row');
+    if (rows.length < 2) return;
+    var cur = 0;
+    setInterval(function() {
+      rows[cur].classList.remove('on');
+      cur = (cur + 1) % rows.length;
+      rows[cur].classList.add('on');
+    }, 2800);
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) { if (e.isIntersecting) { document.querySelectorAll('.stats-cycle').forEach(startCycle); io.disconnect(); } });
+    }, { threshold: 0.05 });
+    var g = document.querySelector('.service-grid');
+    if (g) io.observe(g); else document.querySelectorAll('.stats-cycle').forEach(startCycle);
+  } else { document.querySelectorAll('.stats-cycle').forEach(startCycle); }
+})();
+</script>
+{% endblock %}

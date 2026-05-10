@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Message {{ recipient.username }} — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .msg-wrap { max-width: 600px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  .msg-header { margin-bottom: 2rem; }
+  .msg-header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .msg-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .recipient-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 100px; padding: 5px 14px 5px 8px; margin-bottom: 1.5rem; }
+  .recipient-av { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 800; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+  .recipient-name { font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .msg-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+  .field-group { margin-bottom: 1.25rem; }
+  .field-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-head); }
+  .field-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 0.875rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+  .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+  .field-input::placeholder { color: var(--text-muted); }
+  textarea.field-input { resize: vertical; min-height: 110px; }
+  .btn-send { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; padding: 11px 28px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-send:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-cancel { background: transparent; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; padding: 11px 20px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-cancel:hover { border-color: var(--gold); color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="msg-wrap">
+  <div class="msg-header">
+    <h1>Send a Message</h1>
+    <p>Start a private conversation</p>
+  </div>
+
+  <div class="recipient-badge">
+    <div class="recipient-av">{{ recipient.username|first|upper }}</div>
+    <span class="recipient-name">{{ recipient.username }}</span>
+  </div>
+
+  <div class="msg-card">
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="field-group">
+        <label class="field-label">Subject <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <input type="text" name="subject"
+               placeholder="e.g. Re: Sports T-shirt listing"
+               class="field-input"
+               value="{{ request.GET.subject|default:'' }}">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Message</label>
+        <textarea name="body" class="field-input"
+                  placeholder="Introduce yourself and what you're interested in..."
+                  required></textarea>
+      </div>
+
+      <div style="display:flex;gap:0.875rem;flex-wrap:wrap;">
+        <button type="submit" class="btn-send">Send Message</button>
+        <a href="javascript:history.back()" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

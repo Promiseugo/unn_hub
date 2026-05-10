@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}My Rental Listings — UniTraX{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">My Rental Listings</h2>
+  <a href="{% url 'rentals:rental-create' %}" class="btn btn-success">
+    + List a Property
+  </a>
+</div>
+
+{% if rentals %}
+  {% for rental in rentals %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="row align-items-center">
+
+          <div class="col-md-2">
+            {% with rental.primary_image as img %}
+              {% if img %}
+                <img src="{{ img.image.url }}"
+                     class="rounded" style="width:80px;height:80px;object-fit:cover"
+                     alt="{{ rental.title }}">
+              {% else %}
+                <div class="rounded bg-light d-flex align-items-center justify-content-center"
+                     style="width:80px;height:80px;font-size:2rem">🏠</div>
+              {% endif %}
+            {% endwith %}
+          </div>
+
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-1">
+              <a href="{{ rental.get_absolute_url }}"
+                 class="text-dark text-decoration-none">
+                {{ rental.title }}
+              </a>
+            </h6>
+            <p class="text-muted small mb-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" style="flex-shrink:0;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> {{ rental.address }}
+              · ₦{{ rental.price|floatformat:0 }} / {{ rental.get_rental_period_display }}
+            </p>
+            <div class="d-flex gap-1">
+              <span class="badge bg-primary" style="font-size:0.7rem">
+                {{ rental.get_rental_type_display }}
+              </span>
+              {% if rental.is_taken %}
+                <span class="badge bg-danger" style="font-size:0.7rem">Taken</span>
+              {% else %}
+                <span class="badge bg-success" style="font-size:0.7rem">Available</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-2 text-center">
+            <div class="fw-bold fs-4">{{ rental.inquiries.count }}</div>
+            <small class="text-muted">Inquir{{ rental.inquiries.count|pluralize:"y,ies" }}</small>
+          </div>
+
+          <div class="col-md-2 text-end">
+            <div class="d-flex flex-column gap-1">
+              <a href="{% url 'rentals:rental-edit' rental.pk %}"
+                 class="btn btn-outline-primary btn-sm">Edit</a>
+              {% if not rental.is_taken %}
+                <form method="POST" action="{% url 'rentals:rental-mark-taken' rental.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-warning btn-sm w-100">Mark Taken</button>
+                </form>
+              {% endif %}
+              <a href="{% url 'rentals:rental-delete' rental.pk %}"
+                 class="btn btn-outline-danger btn-sm">Remove</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+{% else %}
+  <div class="text-center py-5">
+    <div style="font-size:3rem" class="mb-3">🏠</div>
+    <h4 class="text-muted">No listings yet</h4>
+    <p class="text-muted">List a property to start receiving inquiries from students.</p>
+    <a href="{% url 'rentals:rental-create' %}" class="btn btn-success mt-2">
+      List a Property
+    </a>
+  </div>
+{% endif %}
+
+{% endblock %}

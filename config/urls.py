@@ -1,31 +1,44 @@
-"""
-Root URL configuration for UNN Exchange & Services Hub.
-"""
-
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.core.views import landing
+
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Disallow: /messages/",
+        "Allow: /",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+admin_url = getattr(settings, 'ADMIN_URL', 'admin/')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('robots.txt', robots_txt, name='robots-txt'),
+    path(admin_url, admin.site.urls),
 
-    # App routes
-    path('', include('apps.marketplace.urls', namespace='marketplace')),
-    path('accounts/', include('apps.accounts.urls', namespace='accounts')),
-    path('services/', include('apps.services.urls', namespace='services')),
-    path('messages/', include('apps.messaging.urls', namespace='messaging')),
-    path('reviews/', include('apps.reviews.urls', namespace='reviews')),
+    path('', landing, name='landing'),
+    path('', include('apps.core.urls')),
+    path('', include('apps.marketplace.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('services/', include('apps.services.urls')),
+    path('messages/', include('apps.messaging.urls')),
+    path('reviews/', include('apps.reviews.urls')),
+    path('accommodation/', include('apps.rentals.urls')),
+    path('interactions/', include('apps.interactions.urls')),
 ]
 
-# ─────────────────────────────────────────────
-# Debug Toolbar (development only)
-# ─────────────────────────────────────────────
 if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
-
-    # Serve media files locally during development
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    try:
+        import debug_toolbar
+        urlpatterns = [path('__debug__/', include(debug_toolbar.urls))] + urlpatterns
+    except ImportError:
+        pass

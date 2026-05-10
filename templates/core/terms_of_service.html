@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .legal-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+  .legal-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .legal-badge {
+    display: inline-block;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+    font-family: var(--font-head);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .legal-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px;
+  }
+  .legal-updated { font-size: 0.82rem; color: var(--text-muted); }
+  .legal-intro {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .legal-section { margin-bottom: 2.5rem; }
+  .legal-section h2 {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .legal-section h2::before {
+    content: '';
+    width: 4px; height: 1em;
+    background: var(--gold);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legal-section p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    margin-bottom: 0.75rem;
+  }
+  .legal-section ul {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .legal-section ul li { margin-bottom: 4px; }
+  .legal-warn {
+    background: rgba(229,62,62,0.06);
+    border: 1px solid rgba(229,62,62,0.18);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .legal-contact-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 2.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .legal-contact-icon {
+    width: 44px; height: 44px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .legal-contact-card h3 { font-family: var(--font-head); font-size: 0.9rem; font-weight: 700; margin: 0 0 4px; }
+  .legal-contact-card p  { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+  .legal-contact-card a  { color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+
+  <div class="legal-header">
+    <div class="legal-badge">Legal</div>
+    <h1>Terms of Service</h1>
+    <p class="legal-updated">Last updated: March 2026</p>
+  </div>
+
+  <div class="legal-intro">
+    By creating an account or using UniTraX, you agree to these terms. Please read them carefully. They are designed to keep the platform safe and fair for everyone in the campus community.
+  </div>
+
+  <div class="legal-section">
+    <h2>Who Can Use UniTraX</h2>
+    <p>UniTraX is intended for students, staff, and members of the University of Nigeria campus community. You must be at least 16 years old to create an account. By registering, you confirm that the information you provide is accurate.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Your Account</h2>
+    <p>You are responsible for keeping your account credentials secure. Do not share your password with others. You are responsible for all activity that occurs under your account. If you believe your account has been compromised, contact us immediately.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Listings and Content</h2>
+    <p>When you post a listing, service, or accommodation on UniTraX, you agree that:</p>
+    <ul>
+      <li>All information is accurate and not misleading</li>
+      <li>You have the right to sell the item or offer the service</li>
+      <li>Photos and videos you upload belong to you or you have permission to use them</li>
+      <li>Prices are stated in Nigerian Naira (₦) and are honest representations</li>
+    </ul>
+    <div class="legal-warn">
+      ⚠ Listings for stolen goods, counterfeit items, prohibited substances, weapons, or any illegal products or services are strictly forbidden and will result in immediate account suspension.
+    </div>
+  </div>
+
+  <div class="legal-section">
+    <h2>Prohibited Conduct</h2>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Harass, threaten, or abuse other users through messages or reviews</li>
+      <li>Create multiple accounts to circumvent suspensions or bans</li>
+      <li>Post spam, fraudulent listings, or misleading content</li>
+      <li>Attempt to access other users' accounts or private data</li>
+      <li>Use automated bots or scrapers on the platform</li>
+      <li>Impersonate another person or organisation</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>Transactions</h2>
+    <p>UniTraX is a platform that connects buyers and sellers — we do not process payments or act as an intermediary in transactions. All sales, agreements, and payments happen directly between users. UniTraX is not responsible for disputes, failed transactions, or items that are not as described.</p>
+    <p>We strongly recommend meeting in public, safe locations on campus when completing transactions.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Reviews and Ratings</h2>
+    <p>Reviews must be honest and based on a genuine transaction or interaction. Fake reviews, review manipulation, or reviews intended to damage another user's reputation unfairly are prohibited.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Content Removal</h2>
+    <p>UniTraX reserves the right to remove any listing, review, or account that violates these terms without prior notice. Users who repeatedly violate the terms may be permanently banned from the platform.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Limitation of Liability</h2>
+    <p>UniTraX provides the platform on an "as is" basis. We make no guarantees about the accuracy of listings, the behaviour of other users, or the outcome of transactions. To the fullest extent permitted by law, UniTraX is not liable for any losses arising from your use of the platform.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Changes to These Terms</h2>
+    <p>We may update these terms from time to time. Continued use of UniTraX after updates are posted means you accept the revised terms. We will notify users of significant changes via email where possible.</p>
+  </div>
+
+  <div class="legal-contact-card">
+    <div class="legal-contact-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </div>
+    <div>
+      <h3>Questions or concerns?</h3>
+      <p>Email us at <a href="mailto:support@unitrax.com">support@unitrax.com</a> — we aim to respond within 7 days.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

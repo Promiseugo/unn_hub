@@ -1,0 +1,87 @@
+{# Recursive comment item — used by interactions.html and itself for replies #}
+<div class="ixn-comment" id="ixn-comment-{{ comment.pk }}">
+  {# Avatar #}
+  {% if comment.user.profile.avatar %}
+    <img src="{{ comment.user.profile.avatar.url }}" class="ixn-av-img" alt="{{ comment.user.username }}">
+  {% else %}
+    <div class="ixn-av">{{ comment.user.username|first|upper }}</div>
+  {% endif %}
+
+  <div class="ixn-comment-body" id="ixn-comment-body-{{ comment.pk }}">
+    <div class="ixn-comment-meta">
+      <a href="{% url 'accounts:profile' comment.user.username %}" class="ixn-comment-name">
+        {{ comment.user.username }}
+      </a>
+      <span class="ixn-comment-time">{{ comment.created_at|timesince }} ago</span>
+    </div>
+    <p class="ixn-comment-text">{{ comment.body }}</p>
+    <div class="ixn-comment-actions">
+      {% if user.is_authenticated %}
+        <button class="ixn-reply-btn" onclick="ixnToggleReply({{ comment.pk }})">↩ Reply</button>
+      {% endif %}
+      {% if user == comment.user %}
+        <button class="ixn-delete-btn" onclick="ixnDeleteComment({{ comment.pk }}, '{{ object_id }}')">Delete</button>
+      {% endif %}
+    </div>
+
+    {# Inline reply form #}
+    {% if user.is_authenticated %}
+      <div class="ixn-reply-form-wrap" id="ixn-reply-form-{{ comment.pk }}">
+        <div class="ixn-form-wrap" style="margin-bottom:0;">
+          {% if user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" class="ixn-av-img" alt="{{ user.username }}">
+          {% else %}
+            <div class="ixn-av" style="width:28px;height:28px;font-size:0.65rem;">{{ user.username|first|upper }}</div>
+          {% endif %}
+          <div class="ixn-form-inner">
+            <textarea class="ixn-textarea"
+                      id="ixn-reply-textarea-{{ comment.pk }}"
+                      placeholder="Write a reply to {{ comment.user.username }}…"
+                      rows="2"
+                      maxlength="1000"></textarea>
+            <div class="ixn-form-actions">
+              <button class="ixn-cancel-reply" style="display:inline-block"
+                      onclick="ixnToggleReply({{ comment.pk }})">Cancel</button>
+              <button class="ixn-submit"
+                      onclick="ixnSubmitComment('{{ object_id }}', '{{ app_label }}', '{{ model_name }}', {{ comment.pk }})">
+                Reply
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {# Existing replies #}
+    {% if comment.replies.count %}
+      <div class="ixn-replies" id="ixn-replies-{{ comment.pk }}">
+        {% for reply in comment.replies.all %}
+          {% if reply.is_active %}
+            <div class="ixn-comment" id="ixn-comment-{{ reply.pk }}">
+              {% if reply.user.profile.avatar %}
+                <img src="{{ reply.user.profile.avatar.url }}" class="ixn-av-img" style="width:28px;height:28px;" alt="{{ reply.user.username }}">
+              {% else %}
+                <div class="ixn-av" style="width:28px;height:28px;font-size:0.65rem;">{{ reply.user.username|first|upper }}</div>
+              {% endif %}
+              <div class="ixn-comment-body">
+                <div class="ixn-comment-meta">
+                  <a href="{% url 'accounts:profile' reply.user.username %}" class="ixn-comment-name">{{ reply.user.username }}</a>
+                  <span class="ixn-comment-time">{{ reply.created_at|timesince }} ago</span>
+                </div>
+                <p class="ixn-comment-text">{{ reply.body }}</p>
+                {% if user == reply.user %}
+                  <div class="ixn-comment-actions">
+                    <button class="ixn-delete-btn" onclick="ixnDeleteComment({{ reply.pk }}, '{{ object_id }}')">Delete</button>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div id="ixn-replies-{{ comment.pk }}"></div>
+    {% endif %}
+
+  </div>
+</div>

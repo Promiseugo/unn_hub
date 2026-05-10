@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Message with {{ other.username|default:"Unknown" }} — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .thread-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  /* Header */
+  .thread-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .btn-back {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-head);
+    padding: 7px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-back:hover { border-color: var(--gold); color: var(--gold); }
+
+  .thread-with {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .thread-subject {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Message list */
+  .msg-list {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .msg-row {
+    display: flex;
+  }
+
+  .msg-row.mine { justify-content: flex-end; }
+  .msg-row.theirs { justify-content: flex-start; }
+
+  /* Message bubble */
+  .bubble {
+    max-width: 72%;
+    word-break: break-word;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+
+  /* My messages — gold tinted */
+  .bubble.mine {
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--text);
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Their messages — elevated bg */
+  .bubble.theirs {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble-text {
+    margin: 0 0 4px;
+    color: var(--text);
+  }
+
+  .bubble-time {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  /* Reply box */
+  .reply-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+  }
+
+  .reply-textarea {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    font-family: var(--font-body);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 80px;
+  }
+
+  .reply-textarea:focus { border-color: var(--gold); }
+  .reply-textarea::placeholder { color: var(--text-muted); }
+
+  .reply-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.625rem;
+  }
+
+  .btn-send {
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 9px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-send:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* Empty state */
+  .msg-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="thread-wrap">
+
+  <!-- Header -->
+  <div class="thread-header">
+    <a href="{% url 'messaging:inbox' %}" class="btn-back">← Back</a>
+    <div>
+      <p class="thread-with">{{ other.username|default:"Unknown" }}</p>
+      {% if thread.subject %}
+        <p class="thread-subject">{{ thread.subject }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="msg-list" id="msgList">
+    {% for message in thread.messages.all %}
+      <div class="msg-row {% if message.sender == request.user %}mine{% else %}theirs{% endif %}">
+        <div class="bubble {% if message.sender == request.user %}mine{% else %}theirs{% endif %}">
+          <p class="bubble-text">{{ message.body }}</p>
+          <span class="bubble-time">{{ message.created_at|timesince }} ago</span>
+        </div>
+      </div>
+    {% empty %}
+      <div class="msg-empty">No messages yet. Start the conversation.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Reply -->
+  <div class="reply-box">
+    <form method="POST">
+      {% csrf_token %}
+      <textarea name="body"
+                class="reply-textarea"
+                placeholder="Write your message..."
+                rows="3"
+                required></textarea>
+      <div class="reply-footer">
+        <button type="submit" class="btn-send">Send</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-scroll to latest message
+  var list = document.getElementById('msgList');
+  if (list) list.scrollTop = list.scrollHeight;
+</script>
+{% endblock %}

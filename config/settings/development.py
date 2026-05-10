@@ -1,26 +1,14 @@
 """
-Development settings.
-Uses SQLite for zero-config local setup.
-Set DJANGO_SETTINGS_MODULE=config.settings.development in your .env
+Development settings — SQLite, console email.
 """
 
 from .base import *  # noqa
-
 from decouple import config
 
-# ─────────────────────────────────────────────
-# SECURITY
-# ─────────────────────────────────────────────
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-
-# ─────────────────────────────────────────────
-# DATABASE
-# Dev: SQLite (no setup required)
-# Switch to PostgreSQL anytime by commenting
-# the SQLite block and uncommenting PostgreSQL.
-# ─────────────────────────────────────────────
+# ── Database: SQLite ───────────────────────────────────────────
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -28,35 +16,15 @@ DATABASES = {
     }
 }
 
-# PostgreSQL (uncomment when ready)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': config('DB_NAME'),
-#         'USER': config('DB_USER'),
-#         'PASSWORD': config('DB_PASSWORD'),
-#         'HOST': config('DB_HOST', default='localhost'),
-#         'PORT': config('DB_PORT', default='5432'),
-#     }
-# }
-
-
-# ─────────────────────────────────────────────
-# DEBUG TOOLBAR
-# ─────────────────────────────────────────────
-INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
-MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
-INTERNAL_IPS = ['127.0.0.1']
-
-
-# ─────────────────────────────────────────────
-# EMAIL
-# Prints emails to terminal — no SMTP needed
-# ─────────────────────────────────────────────
+# ── Email: print to terminal ───────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# ── Debug Toolbar — DISABLED ───────────────────────────────────
+# Uncomment the 4 lines below ONLY if you need to debug queries.
+# INSTALLED_APPS += ['debug_toolbar']
+# MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+# INTERNAL_IPS = ['127.0.0.1']
+# DEBUG_TOOLBAR_CONFIG = {'SHOW_COLLAPSED': True}
 
-# ─────────────────────────────────────────────
-# MEDIA
-# ─────────────────────────────────────────────
+# ── Media files ────────────────────────────────────────────────
 USE_S3 = False

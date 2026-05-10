@@ -1,0 +1,497 @@
+
+<style>
+/* ── Reaction bar ─────────────────────────────────── */
+.ixn-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+.ixn-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-head);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  user-select: none;
+}
+.ixn-btn:hover { border-color: var(--gold); color: var(--text); }
+.ixn-btn.active-like    { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.4); color: #4ade80; }
+.ixn-btn.active-dislike { background: rgba(229,62,62,0.1);  border-color: rgba(229,62,62,0.35); color: #fc8181; }
+.ixn-count { font-variant-numeric: tabular-nums; }
+.ixn-sep { color: var(--border); }
+
+/* ── Comment section ─────────────────────────────── */
+.ixn-comments-wrap { margin-top: 0.5rem; }
+
+.ixn-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+.ixn-section-title {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+.ixn-count-badge {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-family: var(--font-head);
+}
+
+/* ── Comment form ────────────────────────────────── */
+.ixn-form-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.ixn-av {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #0d0d0d;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.ixn-av-img {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.ixn-form-inner { flex: 1; }
+.ixn-textarea {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  font-family: var(--font-body);
+  resize: none;
+  outline: none;
+  min-height: 60px;
+  transition: border-color 0.2s, min-height 0.2s;
+  box-sizing: border-box;
+}
+.ixn-textarea:focus { border-color: var(--gold); min-height: 80px; }
+.ixn-textarea::placeholder { color: var(--text-muted); }
+.ixn-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ixn-submit {
+  background: var(--gold);
+  color: #0d0d0d;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ixn-submit:hover { background: var(--gold-light); }
+.ixn-cancel-reply {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: none;
+}
+.ixn-login-prompt {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+.ixn-login-prompt a {
+  background: var(--gold);
+  color: #0d0d0d;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+/* ── Comment items ───────────────────────────────── */
+.ixn-comment {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.ixn-comment-body {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.ixn-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.ixn-comment-name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.ixn-comment-name:hover { color: var(--gold); }
+.ixn-comment-time { font-size: 0.72rem; color: var(--text-muted); }
+.ixn-comment-text { font-size: 0.875rem; color: var(--text); line-height: 1.6; margin: 0; }
+.ixn-comment-actions { display: flex; gap: 10px; margin-top: 6px; }
+.ixn-reply-btn, .ixn-delete-btn {
+  background: none; border: none; padding: 0;
+  font-size: 0.75rem; font-family: var(--font-head); font-weight: 600;
+  cursor: pointer; color: var(--text-muted);
+}
+.ixn-reply-btn:hover { color: var(--gold); }
+.ixn-delete-btn:hover { color: #fc8181; }
+
+/* Replies indented */
+.ixn-replies { margin-top: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border); }
+.ixn-reply-form-wrap { display: none; margin-top: 0.75rem; }
+
+/* Empty state */
+.ixn-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+</style>
+
+{% with react_url_base="/interactions/react/"|add:app_label|add:"/"|add:model_name|add:"/"|add:object_id|add:"/" comment_url_base="/interactions/comment/"|add:app_label|add:"/"|add:model_name|add:"/"|add:object_id|add:"/" %}
+
+<!-- ── Reaction Bar ─────────────────────────────── -->
+<div class="ixn-bar" id="ixn-bar-{{ object_id }}">
+  {% if user.is_authenticated %}
+    <button class="ixn-btn {% if user_reaction == 'like' %}active-like{% endif %}"
+            id="ixn-like-{{ object_id }}"
+            onclick="ixnReact('{{ object_id }}', '{{ app_label }}', '{{ model_name }}', 'like')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="{% if user_reaction == 'like' %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2">
+        <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
+        <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+      </svg>
+      <span class="ixn-count" id="ixn-like-count-{{ object_id }}">{{ likes }}</span>
+    </button>
+
+    <button class="ixn-btn {% if user_reaction == 'dislike' %}active-dislike{% endif %}"
+            id="ixn-dislike-{{ object_id }}"
+            onclick="ixnReact('{{ object_id }}', '{{ app_label }}', '{{ model_name }}', 'dislike')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="{% if user_reaction == 'dislike' %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2">
+        <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/>
+      </svg>
+      <span class="ixn-count" id="ixn-dislike-count-{{ object_id }}">{{ dislikes }}</span>
+    </button>
+  {% else %}
+    <button class="ixn-btn" onclick="window.location='{% url 'accounts:login' %}?next={{ request.path }}'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/>
+        <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+      </svg>
+      <span class="ixn-count">{{ likes }}</span>
+    </button>
+    <button class="ixn-btn" onclick="window.location='{% url 'accounts:login' %}?next={{ request.path }}'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/>
+      </svg>
+      <span class="ixn-count">{{ dislikes }}</span>
+    </button>
+  {% endif %}
+
+  <span class="ixn-sep">·</span>
+  <span style="font-size:0.82rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span id="ixn-comment-count-{{ object_id }}">{{ comments|length }}</span>
+    comment{{ comments|length|pluralize }}
+  </span>
+</div>
+
+<!-- ── Comments Section ───────────────────────────── -->
+<div class="ixn-comments-wrap" id="ixn-comments-{{ object_id }}">
+
+  <div class="ixn-section-head">
+    <h3 class="ixn-section-title">Comments</h3>
+    <span class="ixn-count-badge" id="ixn-badge-{{ object_id }}">{{ comments|length }}</span>
+  </div>
+
+  {% if user.is_authenticated %}
+    <!-- Main comment form -->
+    <div class="ixn-form-wrap" id="ixn-main-form-{{ object_id }}">
+      {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" class="ixn-av-img" alt="{{ user.username }}">
+      {% else %}
+        <div class="ixn-av">{{ user.username|first|upper }}</div>
+      {% endif %}
+      <div class="ixn-form-inner">
+        <textarea class="ixn-textarea"
+                  id="ixn-main-textarea-{{ object_id }}"
+                  placeholder="Write a comment…"
+                  maxlength="1000"
+                  rows="2"></textarea>
+        <div class="ixn-form-actions">
+          <button class="ixn-submit"
+                  onclick="ixnSubmitComment('{{ object_id }}', '{{ app_label }}', '{{ model_name }}', null)">
+            Post Comment
+          </button>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="ixn-login-prompt">
+      Have something to say?
+      <a href="{% url 'accounts:login' %}?next={{ request.path }}">Login to comment</a>
+    </div>
+  {% endif %}
+
+  <!-- Comment list -->
+  <div id="ixn-list-{{ object_id }}">
+    {% for comment in comments %}
+      {% if not comment.parent %}
+        {% include 'components/comment_item.html' with comment=comment object_id=object_id app_label=app_label model_name=model_name %}
+      {% endif %}
+    {% empty %}
+      <div class="ixn-empty" id="ixn-empty-{{ object_id }}">
+        <div style="font-size:1.5rem;margin-bottom:0.5rem;">💬</div>
+        No comments yet — be the first!
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endwith %}
+
+<script>
+/* ── Reactions ─────────────────────────────────────── */
+function ixnReact(objId, appLabel, modelName, reactionType) {
+  var url = '/interactions/react/' + appLabel + '/' + modelName + '/' + objId + '/';
+  var csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
+  csrfToken = csrfToken ? csrfToken[1] : '';
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
+    },
+    body: JSON.stringify({ reaction_type: reactionType }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) return;
+
+    var likeBtn    = document.getElementById('ixn-like-'    + objId);
+    var dislikeBtn = document.getElementById('ixn-dislike-' + objId);
+    var likeCount    = document.getElementById('ixn-like-count-'    + objId);
+    var dislikeCount = document.getElementById('ixn-dislike-count-' + objId);
+
+    if (likeCount)    likeCount.textContent    = data.likes;
+    if (dislikeCount) dislikeCount.textContent = data.dislikes;
+
+    if (likeBtn) {
+      likeBtn.classList.toggle('active-like', data.user_reaction === 'like');
+      var svg = likeBtn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', data.user_reaction === 'like' ? 'currentColor' : 'none');
+    }
+    if (dislikeBtn) {
+      dislikeBtn.classList.toggle('active-dislike', data.user_reaction === 'dislike');
+      var svg2 = dislikeBtn.querySelector('svg');
+      if (svg2) svg2.setAttribute('fill', data.user_reaction === 'dislike' ? 'currentColor' : 'none');
+    }
+  });
+}
+
+/* ── Submit comment ────────────────────────────────── */
+function ixnSubmitComment(objId, appLabel, modelName, parentId) {
+  var textareaId = parentId
+    ? 'ixn-reply-textarea-' + parentId
+    : 'ixn-main-textarea-' + objId;
+  var textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  var body = textarea.value.trim();
+  if (!body) { textarea.focus(); return; }
+
+  var url = '/interactions/comment/' + appLabel + '/' + modelName + '/' + objId + '/';
+  var formData = new FormData();
+  formData.append('body', body);
+  if (parentId) formData.append('parent_id', parentId);
+  formData.append('csrfmiddlewaretoken', ixnCSRF());
+
+  fetch(url, { method: 'POST', body: formData })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { alert(data.error); return; }
+    textarea.value = '';
+
+    if (parentId) {
+      // Hide reply form
+      var replyForm = document.getElementById('ixn-reply-form-' + parentId);
+      if (replyForm) replyForm.style.display = 'none';
+      // Append reply HTML
+      var repliesDiv = document.getElementById('ixn-replies-' + parentId);
+      if (!repliesDiv) {
+        repliesDiv = document.createElement('div');
+        repliesDiv.className = 'ixn-replies';
+        repliesDiv.id = 'ixn-replies-' + parentId;
+        var parentBody = document.getElementById('ixn-comment-body-' + parentId);
+        if (parentBody) parentBody.appendChild(repliesDiv);
+      }
+      repliesDiv.insertAdjacentHTML('beforeend', ixnReplyHTML(data));
+    } else {
+      // Remove empty state
+      var empty = document.getElementById('ixn-empty-' + objId);
+      if (empty) empty.remove();
+      // Append to list
+      var list = document.getElementById('ixn-list-' + objId);
+      if (list) list.insertAdjacentHTML('beforeend', ixnCommentHTML(data, objId, appLabel, modelName));
+    }
+    // Update counts
+    ixnUpdateCount(objId, 1);
+  });
+}
+
+/* ── Toggle reply form ─────────────────────────────── */
+function ixnToggleReply(commentId) {
+  var form = document.getElementById('ixn-reply-form-' + commentId);
+  if (!form) return;
+  var isVisible = form.style.display === 'block';
+  form.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    var ta = document.getElementById('ixn-reply-textarea-' + commentId);
+    if (ta) ta.focus();
+  }
+}
+
+/* ── Delete comment ────────────────────────────────── */
+function ixnDeleteComment(commentId, objId) {
+  if (!confirm('Delete this comment?')) return;
+  fetch('/interactions/comment/delete/' + commentId + '/', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': ixnCSRF() },
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.deleted) {
+      var el = document.getElementById('ixn-comment-' + commentId);
+      if (el) el.remove();
+      ixnUpdateCount(objId, -1);
+    }
+  });
+}
+
+/* ── Helpers ───────────────────────────────────────── */
+function ixnCSRF() {
+  var m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : '';
+}
+
+function ixnUpdateCount(objId, delta) {
+  ['ixn-comment-count-' + objId, 'ixn-badge-' + objId].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = Math.max(0, parseInt(el.textContent) + delta);
+  });
+}
+
+function ixnCommentHTML(data, objId, appLabel, modelName) {
+  return '<div class="ixn-comment" id="ixn-comment-' + data.id + '">' +
+    '<div class="ixn-av" style="flex-shrink:0">' + data.user.charAt(0).toUpperCase() + '</div>' +
+    '<div class="ixn-comment-body" id="ixn-comment-body-' + data.id + '">' +
+      '<div class="ixn-comment-meta">' +
+        '<span class="ixn-comment-name">' + ixnEscape(data.user) + '</span>' +
+        '<span class="ixn-comment-time">Just now</span>' +
+      '</div>' +
+      '<p class="ixn-comment-text">' + ixnEscape(data.body) + '</p>' +
+      '<div class="ixn-comment-actions">' +
+        '<button class="ixn-reply-btn" onclick="ixnToggleReply(' + data.id + ')">↩ Reply</button>' +
+        '<button class="ixn-delete-btn" onclick="ixnDeleteComment(' + data.id + ', \'' + objId + '\')">Delete</button>' +
+      '</div>' +
+      '<div class="ixn-reply-form-wrap" id="ixn-reply-form-' + data.id + '">' +
+        '<div class="ixn-form-wrap" style="margin-bottom:0">' +
+          '<div class="ixn-av">…</div>' +
+          '<div class="ixn-form-inner">' +
+            '<textarea class="ixn-textarea" id="ixn-reply-textarea-' + data.id + '" placeholder="Write a reply…" rows="2"></textarea>' +
+            '<div class="ixn-form-actions">' +
+              '<button class="ixn-cancel-reply" style="display:inline-block" onclick="ixnToggleReply(' + data.id + ')">Cancel</button>' +
+              '<button class="ixn-submit" onclick="ixnSubmitComment(\'' + objId + '\', \'' + appLabel + '\', \'' + modelName + '\', ' + data.id + ')">Reply</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function ixnReplyHTML(data) {
+  return '<div class="ixn-comment" id="ixn-comment-' + data.id + '">' +
+    '<div class="ixn-av" style="flex-shrink:0;width:28px;height:28px;font-size:0.65rem">' + data.user.charAt(0).toUpperCase() + '</div>' +
+    '<div class="ixn-comment-body">' +
+      '<div class="ixn-comment-meta">' +
+        '<span class="ixn-comment-name">' + ixnEscape(data.user) + '</span>' +
+        '<span class="ixn-comment-time">Just now</span>' +
+      '</div>' +
+      '<p class="ixn-comment-text">' + ixnEscape(data.body) + '</p>' +
+    '</div>' +
+  '</div>';
+}
+
+function ixnEscape(str) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+</script>

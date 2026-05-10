@@ -1,0 +1,212 @@
+{% comment %}
+  UniTraX — Shared Category Dropdown Component
+  Usage: {% include 'components/cat_dropdown.html' with categories=categories active_category=active_category active_subcategory=active_subcategory %}
+{% endcomment %}
+
+<style>
+.cat-dropdown-wrap { position: relative; flex-shrink: 0; }
+.cat-trigger {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 9px 14px;
+  font-size: 0.875rem; font-family: var(--font-body);
+  cursor: pointer; white-space: nowrap; min-width: 190px;
+  justify-content: space-between; user-select: none;
+  transition: border-color 0.2s;
+}
+.cat-trigger:hover,
+.cat-dropdown-wrap.open .cat-trigger { border-color: var(--gold); }
+.cat-trigger-left { display: flex; align-items: center; gap: 8px; }
+.cat-trigger-arrow { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+.cat-dropdown-wrap.open .cat-trigger-arrow { transform: rotate(180deg); }
+
+.cat-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px); left: 0;
+  width: 250px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  z-index: 500;
+  padding: 6px;
+}
+.cat-dropdown-wrap.open .cat-menu { display: block; }
+
+.cat-menu-all {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 0.875rem; font-family: var(--font-body);
+  text-align: left; transition: background 0.15s;
+}
+.cat-menu-all:hover { background: var(--bg-elevated); color: var(--text); }
+.cat-menu-divider { height: 1px; background: var(--border); margin: 5px 8px; }
+
+.cat-menu-item { position: relative; }
+
+/* Invisible bridge prevents hover gap closing the submenu */
+.cat-menu-item::after {
+  content: '';
+  position: absolute;
+  right: -12px; top: 0;
+  width: 12px; height: 100%;
+  background: transparent;
+}
+
+.cat-menu-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 8px 12px; border-radius: 8px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text); font-size: 0.875rem; font-family: var(--font-body);
+  text-align: left; transition: background 0.15s;
+}
+.cat-menu-btn:hover { background: var(--bg-elevated); }
+.cat-menu-btn.active { color: var(--gold); background: rgba(201,168,76,0.08); }
+.cat-menu-btn-left { display: flex; align-items: center; gap: 10px; }
+
+.cat-menu-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--bg-elevated);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.cat-menu-btn:hover .cat-menu-icon,
+.cat-menu-btn.active .cat-menu-icon { background: rgba(201,168,76,0.12); }
+.cat-menu-chevron { color: var(--text-muted); opacity: 0.6; flex-shrink: 0; }
+
+/* Submenu flyout */
+.cat-submenu {
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px); top: -6px;
+  width: 210px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  z-index: 501;
+  padding: 6px;
+}
+.cat-menu-item:hover .cat-submenu { display: block; }
+.cat-menu-item:hover .cat-menu-btn { background: var(--bg-elevated); }
+
+.cat-submenu-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 8px;
+  color: var(--text-muted); font-size: 0.85rem;
+  text-decoration: none; transition: background 0.15s, color 0.15s;
+  cursor: pointer; background: none; border: none; width: 100%; text-align: left;
+  font-family: var(--font-body);
+}
+.cat-submenu-link:hover { background: var(--bg-elevated); color: var(--text); }
+.cat-submenu-link.active { color: var(--gold); background: rgba(201,168,76,0.08); }
+.cat-sub-icon {
+  font-size: 0.85rem;
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  background: var(--bg-elevated);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: opacity 0.15s, background 0.15s;
+}
+.cat-submenu-link:hover .cat-sub-icon,
+.cat-submenu-link.active .cat-sub-icon {
+  opacity: 1;
+  background: rgba(201,168,76,0.12);
+}
+
+@media (max-width: 640px) {
+  .cat-dropdown-wrap { width: 100%; }
+  .cat-trigger { width: 100%; }
+  .cat-menu { width: 100%; }
+  .cat-submenu { left: 0; top: 100%; }
+}
+</style>
+
+<div class="cat-dropdown-wrap" id="catDropdown-{{ dropdown_id|default:'main' }}">
+  <div class="cat-trigger" onclick="toggleCatMenu('{{ dropdown_id|default:'main' }}')">
+    <span class="cat-trigger-left">
+      <span id="triggerIcon-{{ dropdown_id|default:'main' }}">
+        {% if active_category %}{% for cat in categories %}{% if cat.slug == active_category %}{{ cat.icon|default:"📦" }}{% endif %}{% endfor %}{% else %}🛒{% endif %}
+      </span>
+      <span id="triggerLabel-{{ dropdown_id|default:'main' }}">
+        {% if active_category %}{% for cat in categories %}{% if cat.slug == active_category %}{{ cat.name }}{% endif %}{% endfor %}{% else %}All Categories{% endif %}
+      </span>
+    </span>
+    <svg class="cat-trigger-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
+  </div>
+
+  <div class="cat-menu" id="catMenu-{{ dropdown_id|default:'main' }}">
+    <button type="button" class="cat-menu-all" onclick="catSelect('{{ dropdown_id|default:'main' }}', '', '', '🛒', 'All Categories')">
+      🛒 &nbsp;All Categories
+    </button>
+    <div class="cat-menu-divider"></div>
+
+    {% for cat in categories %}
+      <div class="cat-menu-item">
+        <button type="button"
+                class="cat-menu-btn {% if active_category == cat.slug %}active{% endif %}"
+                onclick="catSelect('{{ dropdown_id|default:'main' }}', '{{ cat.slug }}', '', '{{ cat.icon|default:'📦' }}', '{{ cat.name }}')">
+          <span class="cat-menu-btn-left">
+            <span class="cat-menu-icon">{{ cat.icon|default:"📦" }}</span>
+            {{ cat.name }}
+          </span>
+          {% if cat.subcategories.all %}
+            <svg class="cat-menu-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+          {% endif %}
+        </button>
+
+        {% if cat.subcategories.all %}
+          <div class="cat-submenu">
+            <button type="button" class="cat-submenu-link {% if active_category == cat.slug and not active_subcategory %}active{% endif %}"
+                    onclick="catSelect('{{ dropdown_id|default:'main' }}', '{{ cat.slug }}', '', '{{ cat.icon|default:'📦' }}', '{{ cat.name }}')">
+              <span class="cat-sub-icon">{{ cat.icon|default:"📦" }}</span> All {{ cat.name }}
+            </button>
+            {% for sub in cat.subcategories.all %}
+              <button type="button"
+                      class="cat-submenu-link {% if active_subcategory == sub.slug %}active{% endif %}"
+                      onclick="catSelect('{{ dropdown_id|default:'main' }}', '{{ cat.slug }}', '{{ sub.slug }}', '{{ cat.icon|default:'📦' }}', '{{ cat.name }}: {{ sub.name }}')">
+                <span class="cat-sub-icon">{{ cat.icon|default:"📦" }}</span> {{ sub.name }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+(function() {
+  var DID = '{{ dropdown_id|default:'main' }}';
+  var wrap = document.getElementById('catDropdown-' + DID);
+
+  window.toggleCatMenu = window.toggleCatMenu || function(id) {
+    var w = document.getElementById('catDropdown-' + id);
+    if (!w) return;
+    // Close all other dropdowns
+    document.querySelectorAll('.cat-dropdown-wrap.open').forEach(function(el) {
+      if (el !== w) el.classList.remove('open');
+    });
+    w.classList.toggle('open');
+  };
+
+  window.catSelect = window.catSelect || function(id, catSlug, subSlug, icon, label) {
+    document.getElementById('real-cat-' + id).value = catSlug;
+    document.getElementById('real-subcat-' + id).value = subSlug;
+    document.getElementById('triggerIcon-' + id).textContent = icon;
+    document.getElementById('triggerLabel-' + id).textContent = label;
+    document.getElementById('catDropdown-' + id).classList.remove('open');
+    document.getElementById('cat-form-' + id).submit();
+  };
+
+  // Close on outside click
+  document.addEventListener('click', function(e) {
+    if (wrap && !wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+})();
+</script>

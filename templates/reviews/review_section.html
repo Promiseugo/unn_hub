@@ -1,0 +1,84 @@
+<div style="margin-top:2.5rem;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
+    <h5 style="font-family:var(--font-head);font-size:1rem;font-weight:700;margin:0;">Reviews</h5>
+    {% if reviews %}
+      <span style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-muted-strong);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:100px;font-family:var(--font-head);">{{ reviews.count }}</span>
+    {% endif %}
+  </div>
+
+  {# ── Review Form ─────────────────────────── #}
+  {% if user.is_authenticated %}
+    {% if not user_has_reviewed %}
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;">
+        <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted-strong);margin-bottom:0.875rem;">Leave a Review</div>
+        <form method="POST" action="{% url 'reviews:add-review' ct_app ct_model object_id %}">
+          {% csrf_token %}
+          <div style="margin-bottom:0.875rem;">
+            {% for choice in review_form.rating %}
+              <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
+                {{ choice.tag }}
+                <label for="{{ choice.id_for_label }}" style="cursor:pointer;font-size:0.875rem;color:var(--text);margin:0;">{{ choice.choice_label }}</label>
+              </div>
+            {% endfor %}
+          </div>
+          <textarea name="comment" rows="3"
+                    style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 14px;font-size:0.875rem;font-family:var(--font-body);outline:none;resize:vertical;box-sizing:border-box;transition:border-color 0.2s;"
+                    placeholder="Share your experience (optional)..."
+                    onfocus="this.style.borderColor='var(--gold)'"
+                    onblur="this.style.borderColor='var(--border)'"></textarea>
+          <button type="submit"
+                  style="margin-top:0.75rem;background:var(--gold);color:#0d0d0d;font-family:var(--font-head);font-weight:700;font-size:0.85rem;padding:9px 22px;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s;"
+                  onmouseover="this.style.background='var(--gold-light)'"
+                  onmouseout="this.style.background='var(--gold)'">
+            Submit Review
+          </button>
+        </form>
+      </div>
+    {% else %}
+      <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px 14px;margin-bottom:1.25rem;font-size:0.85rem;color:#4ade80;">
+        ✓ You've already reviewed this
+      </div>
+    {% endif %}
+  {% else %}
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.25rem;text-align:center;">
+      <p style="color:var(--text-muted-strong);font-size:0.875rem;margin:0 0 0.75rem;">Want to leave a review?</p>
+      <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+         style="background:var(--gold);color:#0d0d0d;font-family:var(--font-head);font-weight:700;font-size:0.8rem;padding:8px 18px;border-radius:8px;text-decoration:none;display:inline-block;">
+        Login to Review
+      </a>
+    </div>
+  {% endif %}
+
+  {# ── Review List ─────────────────────────── #}
+  {% if reviews %}
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      {% for review in reviews %}
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:30px;height:30px;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--gold);font-family:var(--font-head);font-weight:700;font-size:0.7rem;display:flex;align-items:center;justify-content:center;">
+                {{ review.reviewer.username|first|upper }}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:0.85rem;color:var(--text);">{{ review.reviewer.username }}</div>
+                <div style="color:#fbbf24;font-size:0.8rem;letter-spacing:1px;">
+                  {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                  <span style="color:var(--text-muted-strong);font-size:0.72rem;margin-left:4px;">{{ review.rating }}/5</span>
+                </div>
+              </div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--text-muted-strong);white-space:nowrap;">{{ review.created_at|timesince }} ago</span>
+          </div>
+          {% if review.comment %}
+            <p style="font-size:0.875rem;color:var(--text);line-height:1.6;margin:0;">{{ review.comment }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:2.5rem;color:var(--text-muted-strong);font-size:0.875rem;">
+      <div style="font-size:1.5rem;margin-bottom:0.5rem;">💬</div>
+      No reviews yet — be the first!
+    </div>
+  {% endif %}
+</div>

@@ -1,11 +1,20 @@
 from django import forms
 from .models import Review
 
+STAR_CHOICES = [
+    (5, '⭐⭐⭐⭐⭐  Excellent'),
+    (4, '⭐⭐⭐⭐    Good'),
+    (3, '⭐⭐⭐      Average'),
+    (2, '⭐⭐        Poor'),
+    (1, '⭐          Terrible'),
+]
+
 
 class ReviewForm(forms.ModelForm):
     rating = forms.ChoiceField(
-        choices=[(i, f'{i} Star{"s" if i > 1 else ""}') for i in range(1, 6)],
-        widget=forms.RadioSelect,
+        choices=STAR_CHOICES,
+        widget=forms.RadioSelect(attrs={'class': 'star-radio'}),
+        label='Your Rating',
     )
 
     class Meta:
@@ -14,6 +23,10 @@ class ReviewForm(forms.ModelForm):
         widgets = {
             'comment': forms.Textarea(attrs={
                 'rows': 3,
-                'placeholder': 'Share your experience...',
+                'placeholder': 'Share your experience (optional)...',
+                'class': 'form-control',
             }),
+        }
+        labels = {
+            'comment': 'Comment (optional)',
         }

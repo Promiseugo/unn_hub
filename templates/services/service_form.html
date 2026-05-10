@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ action }} Service — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-wrap { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  .form-header { margin-bottom: 2rem; }
+  .form-header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .form-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; }
+  .form-section-label { font-family: var(--font-head); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--border); }
+  .btn-submit { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; padding: 11px 28px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-cancel { background: transparent; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; padding: 11px 20px; border-radius: 10px; border: 1px solid var(--border); text-decoration: none; display: inline-block; transition: all 0.2s; }
+  .btn-cancel:hover { border-color: var(--gold); color: var(--gold); }
+  .form-control, .form-select { background: var(--bg-elevated) !important; border-color: var(--border) !important; color: var(--text) !important; }
+  .form-control:focus, .form-select:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important; background: var(--bg-elevated) !important; }
+  label { color: var(--text-muted) !important; font-size: 0.8rem !important; }
+  .tips-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .tips-title { font-family: var(--font-head); font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+  .tips-list { list-style: none; padding: 0; margin: 0; }
+  .tips-list li { font-size: 0.8rem; color: var(--text-muted); padding: 4px 0; display: flex; gap: 8px; }
+  .tips-list li::before { content: "→"; color: var(--gold); flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>{{ action }} Service</h1>
+    <p>{% if action == 'Create' %}Describe what you offer clearly to attract the right clients.{% else %}Update your service details.{% endif %}</p>
+  </div>
+
+  <div class="form-card">
+    <div class="form-section-label">Service Details</div>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form|crispy }}
+      {# ── Video Upload ──────────────────────────── #}
+      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polygon points="23,7 16,12 23,17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Video <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;text-transform:none;letter-spacing:0;margin-left:4px;">(Optional &mdash; MP4/MOV/WebM, max 50MB)</span>
+        </div>
+        <div id="vdz" style="border:2px dashed var(--border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.2s;">
+          <input type="file" name="video" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" id="vdi" style="display:none">
+          <div id="vdinner">
+            <p style="color:var(--text);font-size:0.875rem;font-weight:600;margin:0 0 4px;">Click to upload or drag &amp; drop</p>
+            <p style="color:var(--text-muted);font-size:0.75rem;margin:0;">MP4 &middot; MOV &middot; WebM &middot; Max 50MB</p>
+          </div>
+          <div id="vdprev" style="display:none">
+            <video id="vdvid" controls style="width:100%;max-height:220px;border-radius:8px;background:#000;"></video>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span id="vdfname" style="font-size:0.78rem;color:var(--text-muted);"></span>
+              <button type="button" id="vdclear" style="background:rgba(229,62,62,0.1);border:1px solid rgba(229,62,62,0.2);color:#fc8181;font-size:0.75rem;padding:3px 10px;border-radius:6px;cursor:pointer;">Remove</button>
+            </div>
+          </div>
+        </div>
+        <script>
+        (function(){
+          var z=document.getElementById('vdz'),i=document.getElementById('vdi'),
+              inn=document.getElementById('vdinner'),pr=document.getElementById('vdprev'),
+              vid=document.getElementById('vdvid'),fn=document.getElementById('vdfname'),
+              cl=document.getElementById('vdclear');
+          z.onclick=function(){if(!z.classList.contains('hf'))i.click();};
+          z.ondragover=function(e){e.preventDefault();z.style.borderColor='rgba(201,168,76,0.5)';};
+          z.ondragleave=function(){z.style.borderColor='';};
+          z.ondrop=function(e){e.preventDefault();z.style.borderColor='';if(e.dataTransfer.files[0])go(e.dataTransfer.files[0]);};
+          i.onchange=function(){if(i.files[0])go(i.files[0]);};
+          function go(f){
+            if(f.size>52428800){alert('Max 50MB');return;}
+            vid.src=URL.createObjectURL(f);
+            fn.textContent=f.name+' ('+(f.size/1048576).toFixed(1)+'MB)';
+            inn.style.display='none';pr.style.display='block';z.classList.add('hf');
+            var dt=new DataTransfer();dt.items.add(f);i.files=dt.files;
+          }
+          cl.onclick=function(e){
+            e.stopPropagation();vid.src='';i.value='';
+            inn.style.display='block';pr.style.display='none';z.classList.remove('hf');
+          };
+        })();
+        </script>
+      </div>
+
+
+      <div style="display:flex;gap:0.875rem;flex-wrap:wrap;margin-top:1.5rem;">
+        <button type="submit" class="btn-submit">
+          {% if action == 'Create' %}Post Service{% else %}Save Changes{% endif %}
+        </button>
+        {% if service %}
+          <a href="{{ service.get_absolute_url }}" class="btn-cancel">Cancel</a>
+        {% else %}
+          <a href="{% url 'services:service-list' %}" class="btn-cancel">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <div class="tips-card">
+    <div class="tips-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Tips for a great service listing
+    </div>
+    <ul class="tips-list">
+      <li>Be specific about what's included in your price</li>
+      <li>Mention your experience, qualifications or past work</li>
+      <li>State your availability — days, hours, response time</li>
+      <li>Upload a short intro video to build trust instantly</li>
+      <li>Respond to inquiries quickly — first response wins</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

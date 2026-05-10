@@ -1,0 +1,857 @@
+{% extends 'base.html' %}
+
+{% block title %}UniTraX — The Campus Marketplace{% endblock %}
+
+{% block extra_css %}
+<style>
+  .main-content { padding: 0; }
+
+  /* ── Hero ───────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: calc(100vh - var(--nav-height));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    background: #080808;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, transparent 25%, rgba(8,8,8,0.65) 70%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 580px;
+    padding: 0 4rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Sphere ─────────────────────────────── */
+  .hero-sphere-wrap {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4rem;
+    min-width: 0;
+  }
+  .hero-sphere-fallback {
+    width: clamp(260px, 32vw, 500px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, rgba(201,168,76,0.055) 0%, transparent 70%);
+    border: 1px solid rgba(201,168,76,0.05);
+    pointer-events: none;
+  }
+  #sphere-canvas {
+    width: clamp(260px, 32vw, 500px) !important;
+    height: clamp(260px, 32vw, 500px) !important;
+    display: block;
+  }
+  @media (max-width: 900px) {
+    .hero { flex-direction: column; justify-content: center; }
+    .hero-content { padding: 3rem 1.5rem 1.5rem; max-width: 100%; }
+    .hero-sphere-wrap { display: none !important; }
+  }
+
+  /* ── Hero brand logo ────────────────────────── */
+  .hero-logo-mark {
+    margin-bottom: 2.25rem;
+    opacity: 0;
+    animation: slideIn 0.8s 0s forwards;
+  }
+  .hero-logo-mark img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 28px rgba(201,168,76,0.45));
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--gold);
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: var(--font-head);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 1.75rem;
+    opacity: 0;
+    animation: slideIn 0.8s 0.1s forwards;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  .hero-title {
+    font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: #f5f0e8;
+    margin-bottom: 1.25rem;
+    opacity: 0;
+    animation: slideIn 0.8s 0.2s forwards;
+  }
+
+  .hero-title .line-gold {
+    display: block;
+    color: var(--gold);
+    -webkit-text-stroke: 0px;
+  }
+
+  .hero-title .line-outline {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(245,240,232,0.4);
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: rgba(245,240,232,0.5);
+    line-height: 1.75;
+    margin-bottom: 2.25rem;
+    max-width: 420px;
+    opacity: 0;
+    animation: slideIn 0.8s 0.35s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 0.875rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: slideIn 0.8s 0.5s forwards;
+  }
+
+  .btn-hero-primary {
+    background: var(--gold);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+
+  .btn-hero-primary:hover {
+    background: var(--gold-light);
+    color: #0d0d0d;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(201,168,76,0.3);
+  }
+
+  .btn-hero-ghost {
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+
+  .btn-hero-ghost:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* ── Features ───────────────────────────────── */
+  .features {
+    padding: 7rem 2rem;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: var(--font-head);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.875rem;
+  }
+
+  .section-heading {
+    font-size: clamp(1.6rem, 2.5vw, 2.25rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-body {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 440px;
+    line-height: 1.7;
+    margin-bottom: 3.5rem;
+  }
+
+  .feat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.75rem;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feat-card:hover {
+    border-color: rgba(201,168,76,0.25);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+
+  .feat-card:hover::after { opacity: 1; }
+
+  .feat-icon {
+    width: 44px; height: 44px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .feat-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .feat-desc {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    margin: 0 0 1rem;
+  }
+
+  .feat-cta {
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: gap 0.2s;
+    text-decoration: none;
+  }
+
+  .feat-cta:hover { gap: 9px; color: var(--gold-light); }
+
+  /* ── Steps ──────────────────────────────────── */
+  .steps-section {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 6rem 2rem;
+  }
+
+  .steps-inner { max-width: 1000px; margin: 0 auto; }
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    border-radius: 14px;
+    transition: background 0.2s;
+  }
+
+  .step-item:hover { background: var(--bg-elevated); }
+
+  .step-num {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--gold), #8b6914);
+    color: #0d0d0d;
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-text-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+
+  .step-text-desc {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── CTA ────────────────────────────────────── */
+  .cta-band {
+    padding: 8rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-band::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px; height: 350px;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .cta-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-family: var(--font-head);
+    margin-bottom: 1rem;
+  }
+
+  .cta-heading {
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .cta-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 420px;
+    margin: 0 auto 2.25rem;
+    line-height: 1.7;
+  }
+
+  .cta-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  /* ── Animations ─────────────────────────────── */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+    50%       { opacity: 0.3; }
+  }
+
+  @media (max-width: 768px) {
+    .hero-content { padding: 2rem 1.5rem; }
+    .features, .steps-section, .cta-band { padding: 4rem 1.25rem; }
+
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- ═══════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section class="hero">
+
+  <div class="hero-content">
+
+    <!-- Brand logo above title -->
+    <div class="hero-logo-mark">
+      <img src="{% static 'images/ux_logo.png' %}" alt="UniTraX">
+    </div>
+
+    <h1 class="hero-title">
+      The Campus
+      <span class="line-gold">Marketplace</span>
+    </h1>
+
+    <p class="hero-sub">
+      Buy, sell, find accommodation and hire services —
+      all within your campus community.
+      Fast, trusted, local.
+    </p>
+
+    <div class="hero-actions">
+      {% if user.is_authenticated %}
+        <a href="{% url 'marketplace:listing-list' %}" class="btn-hero-primary">Browse Listings</a>
+        <a href="{% url 'marketplace:listing-create' %}" class="btn-hero-ghost">Post Something</a>
+      {% else %}
+        <a href="{% url 'accounts:register' %}" class="btn-hero-primary">Get Started Free</a>
+        <a href="{% url 'marketplace:listing-list' %}" class="btn-hero-ghost">Browse Listings</a>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {# ── 3D Sphere ─────────────────────────── #}
+  <div class="hero-sphere-wrap" id="heroSphereWrap">
+    {# Filled by sphere.js — fallback shown when ENABLE_3D_SPHERE = false #}
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     FEATURES
+════════════════════════════════════════ -->
+<section class="features">
+  <div class="text-center mb-5">
+    <div class="section-eyebrow">Everything you need</div>
+    <h2 class="section-heading">One platform. Four superpowers.</h2>
+    <p class="section-body mx-auto">
+      Everything students need to buy, sell, find housing
+      and get things done — in one place.
+    </p>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
+        <div class="feat-title">Marketplace</div>
+        <p class="feat-desc">Buy and sell textbooks, electronics, clothing and more. Post a listing in under 2 minutes.</p>
+        <a href="{% url 'marketplace:listing-list' %}" class="feat-cta">Browse listings <span>→</span></a>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="feat-title">Services</div>
+        <p class="feat-desc">Find tutors, phone repairs, graphic designers and laundry services from fellow students.</p>
+        <a href="{% url 'services:service-list' %}" class="feat-cta">Find services <span>→</span></a>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9,22 9,12 15,12 15,22"/>
+          </svg>
+        </div>
+        <div class="feat-title">Accommodation</div>
+        <p class="feat-desc">Rooms, self-contains, flats and hostel spaces near campus. Filter by gender preference and price.</p>
+        <a href="{% url 'rentals:rental-list' %}" class="feat-cta">Find housing <span>→</span></a>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="13" y2="14"/>
+          </svg>
+        </div>
+        <div class="feat-title">Direct Messaging</div>
+        <p class="feat-desc">Chat privately with sellers and landlords before committing. No middlemen, no fees.</p>
+        {% if user.is_authenticated %}
+          <a href="{% url 'messaging:inbox' %}" class="feat-cta">Open inbox <span>→</span></a>
+        {% else %}
+          <a href="{% url 'accounts:register' %}" class="feat-cta">Get started <span>→</span></a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════ -->
+<section class="steps-section">
+  <div class="steps-inner">
+    <div class="text-center mb-5">
+      <div class="section-eyebrow">Simple by design</div>
+      <h2 class="section-heading">Three steps to get started</h2>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-md-4">
+        <div class="step-item">
+          <div class="step-num">01</div>
+          <div>
+            <div class="step-text-title">Create your account</div>
+            <p class="step-text-desc">Sign up free with your email. Your profile is visible to the whole campus community.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-item">
+          <div class="step-num">02</div>
+          <div>
+            <div class="step-text-title">Post or browse</div>
+            <p class="step-text-desc">List what you're selling or search for exactly what you need right now.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-item">
+          <div class="step-num">03</div>
+          <div>
+            <div class="step-text-title">Connect & transact</div>
+            <p class="step-text-desc">Message directly. Meet on campus. Leave a review. Build your reputation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CTA
+════════════════════════════════════════ -->
+{% if not user.is_authenticated %}
+<section class="cta-band">
+  <div class="cta-label">Join the community</div>
+  <h2 class="cta-heading">
+    Your campus marketplace<br>
+    <span style="color:var(--gold)">is waiting for you.</span>
+  </h2>
+  <p class="cta-sub">
+    Join thousands of students already buying, selling
+    and finding accommodation on UniTraX.
+  </p>
+  <div class="cta-btns">
+    <a href="{% url 'accounts:register' %}" class="btn-hero-primary" style="font-size:0.95rem;padding:13px 30px;">
+      Create Free Account
+    </a>
+    <a href="{% url 'accounts:login' %}" class="btn-hero-ghost" style="font-size:0.95rem;padding:13px 30px;">
+      I have an account
+    </a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+{% load static %}
+
+
+<script>
+/* ── Feature toggle ──────────────────────────────────
+   Set false to skip all Three.js completely.           */
+const ENABLE_3D_SPHERE = true;
+
+/* ── Performance guard: disable on reduced motion & mobile
+   These run BEFORE loading Three.js                    */
+const PREFER_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const IS_MOBILE      = window.innerWidth < 900;
+const LOW_PERF       = navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 2;
+
+const SPHERE_ACTIVE  = ENABLE_3D_SPHERE && !PREFER_REDUCED && !IS_MOBILE && !LOW_PERF;
+
+const sphereWrap = document.getElementById('heroSphereWrap');
+
+if (!SPHERE_ACTIVE) {
+  /* ── Fallback: lightweight gold glow blob ── */
+  if (sphereWrap) {
+    var blob = document.createElement('div');
+    blob.className = 'hero-sphere-fallback';
+    sphereWrap.appendChild(blob);
+  }
+} else {
+  /* ── Load Three.js then init sphere ── */
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onload = initSphere;
+  s.onerror = function() {
+    /* CDN failed — show fallback silently */
+    if (sphereWrap) {
+      var b = document.createElement('div');
+      b.className = 'hero-sphere-fallback';
+      sphereWrap.appendChild(b);
+    }
+  };
+  document.head.appendChild(s);
+}
+
+function initSphere() {
+  if (!sphereWrap || typeof THREE === 'undefined') return;
+
+  /* ── Config ──────────────────────────────────────── */
+  const CFG = {
+    nodeCount:       220,       // particles
+    sphereRadius:    4.2,
+    nodeSize:        0.045,
+    maxConnDist:     1.85,      // max distance for drawing a line
+    maxConnsPerNode: 5,         // cap connections per node (perf)
+    rotSpeedX:       0.0008,
+    rotSpeedY:       0.0014,
+    mouseInfluence:  0.22,      // parallax sensitivity (0 = off)
+    pulseSpeed:      0.6,       // glow pulse frequency
+    nodeBrightness:  0.88,
+    lineOpacity:     0.18,
+    goldGlowColor:   0xc9a84c,
+    nodeColor:       0xf5f0e8,
+    bgAlpha:         0,          // transparent
+  };
+
+  /* ── Canvas ──────────────────────────────────────── */
+  const canvas = document.createElement('canvas');
+  canvas.id = 'sphere-canvas';
+  sphereWrap.appendChild(canvas);
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true,
+    powerPreference: 'low-power',
+  });
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  function getSize() {
+    var vw = window.innerWidth;
+    var dim = Math.min(Math.max(vw * 0.32, 260), 500);
+    return dim;
+  }
+
+  function setSize() {
+    var d = getSize();
+    renderer.setSize(d, d);
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+  }
+
+  /* ── Scene ───────────────────────────────────────── */
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+  camera.position.z = 10;
+
+  /* ── Gold point light (gives glow feel) ─────────── */
+  const goldLight = new THREE.PointLight(CFG.goldGlowColor, 2.2, 18);
+  goldLight.position.set(3, 2, 6);
+  scene.add(goldLight);
+
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.15);
+  scene.add(ambLight);
+
+  /* ── Generate sphere points ──────────────────────── */
+  // Fibonacci sphere distribution for even spread
+  function fibSphere(n, r) {
+    var pts = [];
+    var golden = Math.PI * (3 - Math.sqrt(5));
+    for (var i = 0; i < n; i++) {
+      var y = 1 - (i / (n - 1)) * 2;
+      var radius = Math.sqrt(1 - y * y);
+      var theta  = golden * i;
+      pts.push(new THREE.Vector3(
+        Math.cos(theta) * radius * r,
+        y * r,
+        Math.sin(theta) * radius * r
+      ));
+    }
+    return pts;
+  }
+
+  var points = fibSphere(CFG.nodeCount, CFG.sphereRadius);
+
+  /* ── Nodes (BufferGeometry instanced) ───────────── */
+  var nodeGeo = new THREE.BufferGeometry();
+  var positions = new Float32Array(CFG.nodeCount * 3);
+  for (var i = 0; i < CFG.nodeCount; i++) {
+    positions[i * 3]     = points[i].x;
+    positions[i * 3 + 1] = points[i].y;
+    positions[i * 3 + 2] = points[i].z;
+  }
+  nodeGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  var nodeMat = new THREE.PointsMaterial({
+    color:       CFG.nodeColor,
+    size:        CFG.nodeSize * 10,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity:     CFG.nodeBrightness,
+    fog:         false,
+  });
+
+  var nodeMesh = new THREE.Points(nodeGeo, nodeMat);
+  scene.add(nodeMesh);
+
+  /* ── Connection lines (BufferGeometry) ──────────── */
+  // Build connection index pairs — O(n²) but capped
+  var lineVerts = [];
+  var maxDistSq = CFG.maxConnDist * CFG.maxConnDist;
+  var connCount = new Array(CFG.nodeCount).fill(0);
+
+  for (var i = 0; i < CFG.nodeCount; i++) {
+    for (var j = i + 1; j < CFG.nodeCount; j++) {
+      if (connCount[i] >= CFG.maxConnsPerNode) break;
+      if (connCount[j] >= CFG.maxConnsPerNode) continue;
+      var dx = points[i].x - points[j].x;
+      var dy = points[i].y - points[j].y;
+      var dz = points[i].z - points[j].z;
+      if (dx*dx + dy*dy + dz*dz < maxDistSq) {
+        lineVerts.push(
+          points[i].x, points[i].y, points[i].z,
+          points[j].x, points[j].y, points[j].z
+        );
+        connCount[i]++;
+        connCount[j]++;
+      }
+    }
+  }
+
+  var lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVerts), 3));
+
+  var lineMat = new THREE.LineBasicMaterial({
+    color:       0xffffff,
+    transparent: true,
+    opacity:     CFG.lineOpacity,
+  });
+
+  var lines = new THREE.LineSegments(lineGeo, lineMat);
+  scene.add(lines);
+
+  /* ── Group for unified rotation ──────────────────── */
+  var group = new THREE.Group();
+  group.add(nodeMesh);
+  group.add(lines);
+  scene.add(group);
+  // Remove duplicates from scene root
+  scene.remove(nodeMesh);
+  scene.remove(lines);
+
+  /* ── Mouse parallax ──────────────────────────────── */
+  var mouse = { x: 0, y: 0 };
+  var targetRot = { x: 0, y: 0 };
+  var currentRot = { x: 0, y: 0 };
+
+  document.addEventListener('mousemove', function(e) {
+    mouse.x = (e.clientX / window.innerWidth  - 0.5) * 2;
+    mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+  }, { passive: true });
+
+  /* ── Animation loop ──────────────────────────────── */
+  var clock    = new THREE.Clock();
+  var rafId    = null;
+  var baseRotX = 0;
+  var baseRotY = 0;
+
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+
+    /* Auto-rotate */
+    baseRotX += CFG.rotSpeedX;
+    baseRotY += CFG.rotSpeedY;
+
+    /* Mouse parallax — smooth lerp */
+    targetRot.x = mouse.y * CFG.mouseInfluence;
+    targetRot.y = mouse.x * CFG.mouseInfluence;
+    currentRot.x += (targetRot.x - currentRot.x) * 0.04;
+    currentRot.y += (targetRot.y - currentRot.y) * 0.04;
+
+    group.rotation.x = baseRotX + currentRot.x;
+    group.rotation.y = baseRotY + currentRot.y;
+
+    /* Pulse: node opacity + gold light intensity */
+    var pulse = 0.5 + 0.5 * Math.sin(t * CFG.pulseSpeed);
+    nodeMat.opacity      = 0.65 + 0.25 * pulse;
+    goldLight.intensity  = 1.6  + 1.0  * pulse;
+    goldLight.position.x = 3 + Math.sin(t * 0.3) * 1.5;
+    goldLight.position.y = 2 + Math.cos(t * 0.2) * 1.0;
+
+    renderer.render(scene, camera);
+  }
+
+  setSize();
+  animate();
+
+  /* ── Resize ──────────────────────────────────────── */
+  window.addEventListener('resize', function() {
+    if (window.innerWidth < 900) {
+      /* Hidden by CSS but stop rendering to save resources */
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    } else {
+      setSize();
+      if (!rafId) animate();
+    }
+  });
+
+  /* ── Cleanup (called if ever needed) ─────────────── */
+  window._sphereCleanup = function() {
+    if (rafId) cancelAnimationFrame(rafId);
+    nodeGeo.dispose();
+    lineGeo.dispose();
+    nodeMat.dispose();
+    lineMat.dispose();
+    renderer.dispose();
+  };
+}
+</script>
+{% endblock %}

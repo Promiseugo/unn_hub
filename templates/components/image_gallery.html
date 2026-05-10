@@ -1,0 +1,183 @@
+{% comment %}
+  UniTraX — Sliding Image Carousel (Detail Pages)
+  CSS lives in the parent template's {% block extra_css %} in <head>.
+  This component emits HTML structure + JS only.
+  Usage:
+    {% include 'components/image_gallery.html' with images=listing.images.all title=listing.title gallery_id="listing" %}
+    {% include 'components/image_gallery.html' with images=rental.images.all  title=rental.title  gallery_id="rental"  %}
+{% endcomment %}
+
+{% with imgs=images %}
+{% if imgs %}
+{% with count=imgs|length %}
+
+<!-- Carousel -->
+<div id="ugc-{{ gallery_id }}">
+  {% for img in imgs %}
+    <div class="sl {% if forloop.first %}active{% endif %}" data-i="{{ forloop.counter0 }}">
+      <img src="{{ img.image.url }}"
+           alt="{{ title }} photo {{ forloop.counter }}"
+           loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+    </div>
+  {% endfor %}
+
+  {% if count > 1 %}
+    <button class="arr lft" data-dir="-1" aria-label="Previous">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <button class="arr rgt" data-dir="1" aria-label="Next">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+    </button>
+    <div class="dots">
+      {% for img in imgs %}
+        <button class="dot {% if forloop.first %}on{% endif %}"
+                data-i="{{ forloop.counter0 }}" aria-label="Photo {{ forloop.counter }}"></button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Lightbox -->
+<div id="ugc-lb-{{ gallery_id }}">
+  <button class="lb-close" aria-label="Close">✕</button>
+  {% if count > 1 %}
+    <button class="lb-arr lft" data-dir="-1" aria-label="Previous">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <button class="lb-arr rgt" data-dir="1" aria-label="Next">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+    </button>
+  {% endif %}
+  <div class="lb-stage">
+    {% for img in imgs %}
+      <div class="lb-sl {% if forloop.first %}active{% endif %}" data-i="{{ forloop.counter0 }}">
+        <img src="{{ img.image.url }}" alt="{{ title }} photo {{ forloop.counter }}">
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+(function () {
+  var ID    = '{{ gallery_id }}';
+  var TOTAL = {{ count }};
+  var cur   = 0;
+  var busy  = false;
+  var timer = null;
+  var ANIM  = 540;
+  var DELAY = 4000;
+
+  var stage = document.getElementById('ugc-'    + ID);
+  var lb    = document.getElementById('ugc-lb-' + ID);
+
+  function go(next, dir) {
+    if (TOTAL <= 1 || busy) return;
+    next = ((next % TOTAL) + TOTAL) % TOTAL;
+    if (next === cur) return;
+    busy = true;
+
+    var enterCls = dir >= 0 ? 'enter-right' : 'enter-left';
+    var exitCls  = dir >= 0 ? 'exit-left'   : 'exit-right';
+
+    function animate(container, slCls) {
+      var sls    = container.querySelectorAll('.' + slCls);
+      var prevEl = sls[cur];
+      var nextEl = sls[next];
+      if (!prevEl || !nextEl) return;
+      prevEl.classList.remove('active');
+      prevEl.classList.add(exitCls);
+      nextEl.classList.add(enterCls);
+      setTimeout(function () {
+        prevEl.classList.remove(exitCls);
+        nextEl.classList.remove(enterCls);
+        nextEl.classList.add('active');
+      }, ANIM);
+    }
+
+    animate(stage, 'sl');
+    animate(lb,    'lb-sl');
+
+    stage.querySelectorAll('.dot').forEach(function (d, i) {
+      d.classList.toggle('on', i === next);
+    });
+
+    cur = next;
+    setTimeout(function () { busy = false; }, ANIM);
+  }
+
+  function play() {
+    if (TOTAL > 1) { stop(); timer = setInterval(function () { go(cur + 1, 1); }, DELAY); }
+  }
+  function stop() { clearInterval(timer); timer = null; }
+
+  stage.addEventListener('mouseenter', stop);
+  stage.addEventListener('mouseleave', play);
+
+  stage.querySelectorAll('.arr').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var d = parseInt(btn.getAttribute('data-dir'), 10);
+      stop(); go(cur + d, d); play();
+    });
+  });
+  lb.querySelectorAll('.lb-arr').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var d = parseInt(btn.getAttribute('data-dir'), 10);
+      go(cur + d, d);
+    });
+  });
+
+  stage.querySelectorAll('.dot').forEach(function (dot) {
+    dot.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var i = parseInt(dot.getAttribute('data-i'), 10);
+      stop(); go(i, i >= cur ? 1 : -1); play();
+    });
+  });
+
+  stage.addEventListener('click', function () {
+    stop(); lb.classList.add('open'); document.body.style.overflow = 'hidden';
+  });
+
+  function closeLB() {
+    lb.classList.remove('open'); document.body.style.overflow = ''; play();
+  }
+  lb.querySelector('.lb-close').addEventListener('click', closeLB);
+  lb.addEventListener('click', function (e) { if (e.target === lb) closeLB(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  go(cur - 1, -1);
+    if (e.key === 'ArrowRight') go(cur + 1,  1);
+    if (e.key === 'Escape')     closeLB();
+  });
+
+  function swipe(el, cb) {
+    var sx = 0, sy = 0;
+    el.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener('touchend', function (e) {
+      var dx = sx - e.changedTouches[0].clientX;
+      var dy = sy - e.changedTouches[0].clientY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) { stop(); cb(dx > 0 ? 1 : -1); play(); }
+    }, { passive: true });
+  }
+  swipe(stage, function (d) { go(cur + d, d); });
+  swipe(lb,    function (d) { go(cur + d, d); });
+
+  play();
+})();
+</script>
+
+{% endwith %}
+{% else %}
+
+<div class="ugc-empty">
+  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <circle cx="8.5" cy="8.5" r="1.5"/>
+    <polyline points="21,15 16,10 5,21"/>
+  </svg>
+</div>
+
+{% endif %}
+{% endwith %}

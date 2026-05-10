@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block title %}Accommodation — UniTraX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .rnt-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .rnt-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .rnt-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; }
+  .rnt-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .btn-post { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-post:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
+  .btn-my { background: var(--bg-elevated); color: var(--text); font-family: var(--font-head); font-weight: 600; font-size: 0.875rem; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-my:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Search + filter bar */
+  .rnt-searchbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .rnt-input-wrap { flex: 1; min-width: 200px; position: relative; }
+  .rnt-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+  .rnt-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px 9px 38px; font-size: 0.875rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
+  .rnt-input:focus { border-color: var(--gold); }
+  .rnt-input::placeholder { color: var(--text-muted); }
+  .btn-search { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-search:hover { background: var(--gold-light); }
+
+  /* Styled dropdown (same pattern as marketplace) */
+  .rnt-dropdown { position: relative; flex-shrink: 0; }
+  .rnt-trigger {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 9px 14px;
+    font-size: 0.875rem; font-family: var(--font-body);
+    cursor: pointer; white-space: nowrap; min-width: 170px;
+    justify-content: space-between; user-select: none;
+    transition: border-color 0.2s;
+  }
+  .rnt-trigger:hover, .rnt-dropdown.open .rnt-trigger { border-color: var(--gold); }
+  .rnt-trigger svg { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .rnt-dropdown.open .rnt-trigger svg { transform: rotate(180deg); }
+
+  .rnt-menu {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0;
+    min-width: 200px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    z-index: 300; padding: 6px;
+  }
+  .rnt-dropdown.open .rnt-menu { display: block; }
+  .rnt-menu-btn {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px; background: transparent;
+    border: none; cursor: pointer; color: var(--text);
+    font-size: 0.875rem; font-family: var(--font-body); text-align: left;
+    transition: background 0.15s;
+  }
+  .rnt-menu-btn:hover { background: var(--bg-elevated); }
+  .rnt-menu-btn.active { color: var(--gold); background: rgba(201,168,76,0.08); }
+  .rnt-menu-icon { font-size: 1.05rem; width: 34px; height: 34px; border-radius: 9px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+  .rnt-menu-btn:hover .rnt-menu-icon, .rnt-menu-btn.active .rnt-menu-icon { background: rgba(201,168,76,0.12); }
+
+  /* Cards */
+  .rnt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+  .rnt-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: all 0.3s cubic-bezier(0.2,0,0,1); display: flex; flex-direction: column; position: relative; }
+  .rnt-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.3); }
+  .rnt-card-img { width: 100%; height: 180px; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  .rnt-card:hover .rnt-card-img { transform: scale(1.03); }
+  .rnt-card-img-placeholder { width: 100%; height: 180px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+  .rnt-card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+  .rnt-type-badge { display: inline-block; font-size: 0.65rem; font-weight: 700; font-family: var(--font-head); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; margin-bottom: 6px; background: rgba(201,168,76,0.08); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .rnt-card-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 5px; text-decoration: none; display: block; }
+  .rnt-card-title::after { content: ''; position: absolute; inset: 0; }
+  .rnt-card-location { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 4px; }
+  .rnt-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+  .rnt-price { font-family: var(--font-head); font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+  .rnt-price small { font-size: 0.72rem; font-weight: 400; color: var(--text-muted); font-family: var(--font-body); }
+  .rnt-meta { font-size: 0.7rem; color: var(--text-muted); text-align: right; }
+  .rnt-meta a { color: var(--text-muted); text-decoration: none; position: relative; z-index: 1; }
+  .rnt-meta a:hover { color: var(--gold); }
+
+  /* Cycling stats */
+  .stats-cycle { height: 22px; overflow: hidden; position: relative; margin-bottom: 8px; }
+  .stat-row { position: absolute; inset: 0; display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-head); font-weight: 600; opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+  .stat-row.on { opacity: 1; transform: translateY(0); }
+
+  .filter-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); color: var(--gold); font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 100px; margin-bottom: 1rem; font-family: var(--font-head); }
+  .filter-tag a { color: var(--gold); opacity: 0.7; }
+
+  .empty-state { text-align: center; padding: 5rem 2rem; }
+  .pagination-wrap { display: flex; justify-content: center; gap: 4px; margin-top: 3rem; }
+  .page-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.875rem; font-family: var(--font-head); font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; transition: all 0.2s; }
+  .page-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .page-btn.active { background: var(--gold); border-color: var(--gold); color: #0d0d0d; }
+
+  @media (max-width: 640px) {
+    .rnt-wrap { padding: 1.5rem 1rem; }
+    .rnt-grid { grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+    .rnt-searchbar { flex-direction: column; }
+    .rnt-input-wrap, .rnt-dropdown { width: 100%; }
+    .rnt-trigger { width: 100%; }
+    .rnt-menu { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rnt-wrap">
+
+  <div class="rnt-header">
+    <div>
+      <h1>Accommodation</h1>
+      <p>Rooms, self-contains, flats and roommates near UNN</p>
+    </div>
+    {% if user.is_authenticated %}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{% url 'rentals:my-rentals' %}" class="btn-my">My Listings</a>
+        <a href="{% url 'rentals:rental-create' %}" class="btn-post">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          List a Property
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <form method="GET" id="rnt-form">
+    <input type="hidden" name="type"   id="rnt-type-val"   value="{{ active_type }}">
+    <input type="hidden" name="gender" id="rnt-gender-val" value="{{ active_gender }}">
+
+    <div class="rnt-searchbar">
+      <div class="rnt-input-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by location, title..." class="rnt-input">
+      </div>
+
+      {# ── Property Type dropdown ── #}
+      <div class="rnt-dropdown" id="typeDropdown">
+        <div class="rnt-trigger" onclick="toggleRntMenu('typeDropdown')">
+          <span id="typeTriggerLabel">{% if active_type %}{% for v,l in rental_type_choices %}{% if v == active_type %}{{ l }}{% endif %}{% endfor %}{% else %}All Types{% endif %}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+        <div class="rnt-menu">
+          <button type="button" class="rnt-menu-btn {% if not active_type %}active{% endif %}" onclick="selectRnt('type','','🏡','All Types','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🏡</span> All Types
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_type == 'room' %}active{% endif %}" onclick="selectRnt('type','room','🛏️','Single Room','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🛏️</span> Single Room
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_type == 'self_contain' %}active{% endif %}" onclick="selectRnt('type','self_contain','🚿','Self Contain','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🚿</span> Self Contain
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_type == 'flat' %}active{% endif %}" onclick="selectRnt('type','flat','🏢','Flat / Apartment','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🏢</span> Flat / Apartment
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_type == 'hostel' %}active{% endif %}" onclick="selectRnt('type','hostel','🏫','Hostel Space','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🏫</span> Hostel Space
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_type == 'roommate' %}active{% endif %}" onclick="selectRnt('type','roommate','🤝','Roommate Needed','typeTriggerLabel')">
+            <span class="rnt-menu-icon">🤝</span> Roommate Needed
+          </button>
+        </div>
+      </div>
+
+      {# ── Gender dropdown ── #}
+      <div class="rnt-dropdown" id="genderDropdown">
+        <div class="rnt-trigger" onclick="toggleRntMenu('genderDropdown')">
+          <span id="genderTriggerLabel">{% if active_gender == 'male' %}♂ Male Only{% elif active_gender == 'female' %}♀ Female Only{% else %}Any Gender{% endif %}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+        <div class="rnt-menu">
+          <button type="button" class="rnt-menu-btn {% if not active_gender %}active{% endif %}" onclick="selectRnt('gender','','👥','Any Gender','genderTriggerLabel')">
+            <span class="rnt-menu-icon">👥</span> Any Gender
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_gender == 'male' %}active{% endif %}" onclick="selectRnt('gender','male','♂️','♂ Male Only','genderTriggerLabel')">
+            <span class="rnt-menu-icon">♂️</span> Male Only
+          </button>
+          <button type="button" class="rnt-menu-btn {% if active_gender == 'female' %}active{% endif %}" onclick="selectRnt('gender','female','♀️','♀ Female Only','genderTriggerLabel')">
+            <span class="rnt-menu-icon">♀️</span> Female Only
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-search">Search</button>
+    </div>
+  </form>
+
+  {% if query or active_type or active_gender %}
+    <div class="mb-3">
+      <span class="filter-tag">
+        {% if query %}"{{ query }}"{% endif %}
+        {% if active_type %} · {% for v,l in rental_type_choices %}{% if v == active_type %}{{ l }}{% endif %}{% endfor %}{% endif %}
+        {% if active_gender %} · {% if active_gender == 'male' %}Male Only{% else %}Female Only{% endif %}{% endif %}
+        <a href="{% url 'rentals:rental-list' %}" title="Clear">✕</a>
+      </span>
+    </div>
+  {% endif %}
+
+  {% if page_obj.object_list %}
+    <div class="rnt-grid">
+      {% for rental in page_obj %}
+        <div class="rnt-card">
+          <a href="{{ rental.get_absolute_url }}">
+            {% with rental.primary_image as img %}
+              {% if img %}
+                <img src="{{ img.image.url }}" class="rnt-card-img" alt="{{ rental.title }}">
+              {% else %}
+                <div class="rnt-card-img-placeholder">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+                </div>
+              {% endif %}
+            {% endwith %}
+          </a>
+          <div class="rnt-card-body">
+            <span class="rnt-type-badge">{{ rental.get_rental_type_display }}</span>
+            <a href="{{ rental.get_absolute_url }}" class="rnt-card-title">{{ rental.title|truncatechars:55 }}</a>
+            <div class="rnt-card-location">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ rental.area|default:rental.address|truncatechars:40 }}
+            </div>
+
+            {# Cycling stats #}
+            <div class="stats-cycle">
+              <div class="stat-row on">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                {{ rental.view_count }} Views
+              </div>
+              <div class="stat-row">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                {{ rental.like_count|default:0 }} Likes
+              </div>
+              <div class="stat-row">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                {{ rental.comment_count|default:0 }} Comments
+              </div>
+            </div>
+
+            <div class="rnt-card-footer">
+              <div class="rnt-price">
+                ₦{{ rental.price|floatformat:0 }}
+                <small>/ {{ rental.get_rental_period_display }}</small>
+              </div>
+              <div class="rnt-meta">
+                {{ rental.rooms_available }} space{{ rental.rooms_available|pluralize }}<br>
+                <a href="{% url 'accounts:profile' rental.landlord.username %}">{{ rental.landlord.username }}</a>
+                · {{ rental.created_at|timesince|slice:":8" }} ago
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <div class="pagination-wrap">
+        {% if page_obj.has_previous %}<a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_gender %}&gender={{ active_gender }}{% endif %}">← Prev</a>{% endif %}
+        {% for num in page_obj.paginator.page_range %}<a class="page-btn {% if page_obj.number == num %}active{% endif %}" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_gender %}&gender={{ active_gender }}{% endif %}">{{ num }}</a>{% endfor %}
+        {% if page_obj.has_next %}<a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_gender %}&gender={{ active_gender }}{% endif %}">Next →</a>{% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🏠</div>
+      <h4>No listings found</h4>
+      {% if query or active_type or active_gender %}
+        <p style="color:var(--text-muted)">Try different filters.</p>
+        <a href="{% url 'rentals:rental-list' %}" class="btn-post">Clear Filters</a>
+      {% else %}
+        <p style="color:var(--text-muted)">Be the first to list a property!</p>
+        {% if user.is_authenticated %}<a href="{% url 'rentals:rental-create' %}" class="btn-post">List a Property</a>{% endif %}
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Rental page dropdowns */
+function toggleRntMenu(id) {
+  var w = document.getElementById(id);
+  document.querySelectorAll('.rnt-dropdown.open').forEach(function(el) { if (el !== w) el.classList.remove('open'); });
+  w.classList.toggle('open');
+}
+function selectRnt(field, value, icon, label, labelId) {
+  document.getElementById('rnt-' + field + '-val').value = value;
+  document.getElementById(labelId).textContent = label;
+  document.querySelectorAll('.rnt-dropdown.open').forEach(function(el) { el.classList.remove('open'); });
+  document.getElementById('rnt-form').submit();
+}
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.rnt-dropdown.open').forEach(function(el) {
+    if (!el.contains(e.target)) el.classList.remove('open');
+  });
+});
+
+/* Cycling stats */
+(function() {
+  function startCycle(wrap) {
+    var rows = wrap.querySelectorAll('.stat-row');
+    if (rows.length < 2) return;
+    var cur = 0;
+    setInterval(function() {
+      rows[cur].classList.remove('on'); cur = (cur + 1) % rows.length; rows[cur].classList.add('on');
+    }, 2800);
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) { if (e.isIntersecting) { document.querySelectorAll('.stats-cycle').forEach(startCycle); io.disconnect(); } });
+    }, { threshold: 0.05 });
+    var g = document.querySelector('.rnt-grid');
+    if (g) io.observe(g); else document.querySelectorAll('.stats-cycle').forEach(startCycle);
+  } else { document.querySelectorAll('.stats-cycle').forEach(startCycle); }
+})();
+</script>
+{% endblock %}
