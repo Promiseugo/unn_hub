@@ -27,6 +27,7 @@ urlpatterns = [
     path('', include('apps.core.urls')),
     path('', include('apps.marketplace.urls')),
     path('accounts/', include('apps.accounts.urls')),
+    path('accounts/', include('allauth.urls')),
     path('services/', include('apps.services.urls')),
     path('messages/', include('apps.messaging.urls')),
     path('reviews/', include('apps.reviews.urls')),

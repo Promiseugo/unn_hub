@@ -6,36 +6,50 @@ from django.db import models
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 from .models import Listing, Category, SubCategory, ListingImage
 from .forms import ListingForm, MultiImageValidator, VideoValidator
+from .utils import deactivate_expired_listings
 
 try:
-    from apps.core.upload_utils import secure_video_save
+    from apps.core.upload_utils import secure_video_save, compressed_image_file
 except ImportError:
     def secure_video_save(instance, file, field='video'):
         if file:
             setattr(instance, field, file)
+    def compressed_image_file(file):
+        return file
 
 def listing_list(request):
     from django.db.models import Count, Q as DQ
     from apps.interactions.models import Reaction, Comment
 
+    deactivate_expired_listings()
+
     listings = Listing.objects.filter(
-        is_active=True, is_sold=False
+        is_active=True, is_sold=False, expires_at__gt=timezone.now()
     ).select_related('seller', 'category').prefetch_related('images')
 
     query = request.GET.get('q', '')
     if query:
         listings = listings.filter(
-            Q(title__icontains=query) | Q(description__icontains=query)
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__icontains=query)
+            | Q(category__name__icontains=query)
+            | Q(subcategory__name__icontains=query)
+            | Q(seller__username__icontains=query)
         )
 
     category_slug = request.GET.get('category', '')
     subcategory_slug = request.GET.get('subcategory', '')
+    condition = request.GET.get('condition', '')
     if category_slug:
         listings = listings.filter(category__slug=category_slug)
     if subcategory_slug:
         listings = listings.filter(subcategory__slug=subcategory_slug)
+    if condition in dict(Listing.CONDITION_CHOICES):
+        listings = listings.filter(condition=condition)
 
     # Annotate like and comment counts
     ct = ContentType.objects.get_for_model(Listing)
@@ -68,6 +82,8 @@ def listing_list(request):
         'query': query,
         'active_category': category_slug,
         'active_subcategory': subcategory_slug,
+        'active_condition': condition,
+        'condition_choices': Listing.CONDITION_CHOICES,
     })
 
 
@@ -82,6 +98,7 @@ def listing_detail(request, pk):
         ).prefetch_related('images'),
         pk=pk,
         is_active=True,
+        expires_at__gt=timezone.now(),
     )
 
     # Increment view count (skip owner's own views)
@@ -161,7 +178,7 @@ def listing_create(request):
                     for i, img in enumerate(ordered[:5]):
                         ListingImage.objects.create(
                             listing=listing,
-                            image=img,
+                            image=compressed_image_file(img),
                             is_primary=(i == 0),
                         )
                 messages.success(request, "Listing created successfully!")
@@ -205,7 +222,7 @@ def listing_edit(request, pk):
                         is_primary = (existing_count == 0 and i == 0)
                         ListingImage.objects.create(
                             listing=listing,
-                            image=img,
+                            image=compressed_image_file(img),
                             is_primary=is_primary,
                         )
                 messages.success(request, "Listing updated.")

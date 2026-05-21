@@ -30,6 +30,11 @@
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
   .btn-auth { width: 100%; background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; padding: 13px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
   .btn-auth:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .auth-divider { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.78rem; margin: 1.35rem 0; }
+  .auth-divider::before, .auth-divider::after { content: ""; height: 1px; flex: 1; background: var(--border); }
+  .btn-social { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--bg-elevated); color: var(--text); font-family: var(--font-head); font-weight: 700; font-size: 0.92rem; padding: 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .btn-social:hover { color: var(--text); border-color: rgba(201,168,76,0.45); transform: translateY(-1px); }
+  .google-mark { width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #4285f4; display: inline-flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; font-weight: 700; font-size: 0.9rem; }
   .auth-footer { text-align: center; font-size: 0.875rem; color: var(--text-muted); }
   .auth-footer a { color: var(--gold); }
   .field-error { color: #fc8181; font-size: 0.75rem; margin-top: 3px; }
@@ -56,6 +61,9 @@
     <div class="auth-card">
       <form method="POST">
         {% csrf_token %}
+        {% if next_url %}
+          <input type="hidden" name="next" value="{{ next_url }}">
+        {% endif %}
 
         {% if form.non_field_errors %}
           <div class="form-errors">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
@@ -111,6 +119,16 @@
         </div>
 
         <button type="submit" class="btn-auth">Create Account</button>
+      </form>
+
+      <div class="auth-divider">or</div>
+
+      <form method="POST" action="{% url 'google_login' %}?process=login{% if next_url %}&next={{ next_url|urlencode }}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-social">
+          <span class="google-mark" aria-hidden="true">G</span>
+          Continue with Google
+        </button>
       </form>
     </div>
 

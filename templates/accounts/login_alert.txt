@@ -1,0 +1,11 @@
+Hi {{ user.username }},
+
+There was a new login to your {{ site_name }} account.
+
+IP address: {{ ip_address }}
+Device: {{ user_agent }}
+
+If this was not you, reset your password immediately:
+{{ protocol }}://{{ domain }}{% url 'accounts:password-reset' %}
+
+{{ site_name }}

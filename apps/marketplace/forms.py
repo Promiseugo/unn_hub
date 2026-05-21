@@ -8,6 +8,12 @@ from apps.core.validators import (
 
 
 class ListingForm(forms.ModelForm):
+    condition = forms.ChoiceField(
+        choices=Listing.CONDITION_CHOICES,
+        widget=forms.RadioSelect,
+        label="Condition",
+    )
+
     class Meta:
         model = Listing
         fields = ('title', 'description', 'price', 'category', 'condition', 'location')

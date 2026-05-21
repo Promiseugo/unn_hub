@@ -10,11 +10,13 @@ from .models import RentalListing, RentalImage, RentalInquiry
 from .forms import RentalListingForm, RentalInquiryForm, MultiImageValidator, VideoValidator
 
 try:
-    from apps.core.upload_utils import secure_video_save
+    from apps.core.upload_utils import secure_video_save, compressed_image_file
 except ImportError:
     def secure_video_save(instance, file, field='video'):
         if file:
             setattr(instance, field, file)
+    def compressed_image_file(file):
+        return file
 
 def rental_list(request):
     from django.db.models import Count, Q as DQ
@@ -33,6 +35,7 @@ def rental_list(request):
             | Q(description__icontains=query)
             | Q(address__icontains=query)
             | Q(area__icontains=query)
+            | Q(landlord__username__icontains=query)
         )
 
     # Filter by type
@@ -164,7 +167,7 @@ def rental_create(request):
                     for i, img in enumerate(ordered[:5]):
                         RentalImage.objects.create(
                             rental=rental,
-                            image=img,
+                            image=compressed_image_file(img),
                             is_primary=(i == 0),
                         )
                 messages.success(request, "Rental listing posted successfully!")
@@ -182,15 +185,22 @@ def rental_create(request):
 def rental_edit(request, pk):
     rental = get_object_or_404(RentalListing, pk=pk, landlord=request.user)
     if request.method == 'POST':
-        form = RentalListingForm(request.POST, instance=rental)
+        form = RentalListingForm(request.POST, request.FILES, instance=rental)
         if form.is_valid():
             uploaded = request.FILES.getlist('images')
+            video_file = request.FILES.get('video')
             img_errors = MultiImageValidator.validate(uploaded)
-            if img_errors:
+            video_error = VideoValidator.validate(video_file)
+            if img_errors or video_error:
                 for err in img_errors:
                     form.add_error(None, err)
+                if video_error:
+                    form.add_error(None, f"Video: {video_error}")
             else:
-                form.save()
+                rental = form.save(commit=False)
+                if video_file:
+                    secure_video_save(rental, video_file, "video")
+                rental.save()
                 if uploaded:
                     existing_count = rental.images.count()
                     slots_left = max(0, 5 - existing_count)
@@ -201,7 +211,7 @@ def rental_edit(request, pk):
                         is_primary = (existing_count == 0 and i == 0)
                         RentalImage.objects.create(
                             rental=rental,
-                            image=img,
+                            image=compressed_image_file(img),
                             is_primary=is_primary,
                         )
                 messages.success(request, "Rental listing updated.")

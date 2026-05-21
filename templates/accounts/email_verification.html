@@ -1,0 +1,9 @@
+{% extends 'accounts/email_base.html' %}
+
+{% block body %}
+<h1 style="margin:0 0 10px;font-size:24px;line-height:1.25;color:#f0f0f0;">Verify your email</h1>
+<p style="margin:0 0 18px;color:#d0d0d0;line-height:1.7;font-size:15px;">
+  Confirm this address so we can help protect your {{ site_name }} account and send important security updates.
+</p>
+<a href="{{ protocol }}://{{ domain }}{% url 'accounts:verify-email' uid token %}" style="display:inline-block;background:#c9a84c;color:#0d0d0d;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:10px;">Verify email</a>
+{% endblock %}

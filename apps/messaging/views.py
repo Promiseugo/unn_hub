@@ -2,10 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 from .models import Thread, Message
 from .forms import MessageForm, NewThreadForm
 
 User = get_user_model()
+
+
+@login_required
+def unread_count(request):
+    count = Message.objects.filter(
+        thread__participants=request.user,
+        is_read=False,
+    ).exclude(sender=request.user).count()
+    return JsonResponse({'unread_count': count})
 
 
 @login_required

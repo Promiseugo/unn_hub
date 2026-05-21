@@ -1,0 +1,8 @@
+Hi {{ user.username }},
+
+Please verify your {{ site_name }} email address:
+{{ protocol }}://{{ domain }}{% url 'accounts:verify-email' uid token %}
+
+If you did not create this account, please ignore this email.
+
+{{ site_name }}

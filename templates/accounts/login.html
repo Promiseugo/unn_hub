@@ -176,6 +176,61 @@
     transform: translateY(-1px);
   }
 
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    margin: 1.35rem 0;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: var(--border);
+  }
+
+  .btn-social {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-social:hover {
+    color: var(--text);
+    border-color: rgba(201,168,76,0.45);
+    transform: translateY(-1px);
+  }
+
+  .google-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    color: #4285f4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
   /* Error messages from Django */
   .auth-errors {
     background: rgba(229,62,62,0.08);
@@ -226,6 +281,9 @@
     <div class="auth-card">
       <form method="POST" id="loginForm">
         {% csrf_token %}
+        {% if next_url %}
+          <input type="hidden" name="next" value="{{ next_url }}">
+        {% endif %}
 
         <!-- Show Django form errors -->
         {% if form.non_field_errors %}
@@ -288,6 +346,16 @@
         </div>
 
         <button type="submit" class="btn-auth">Sign In</button>
+      </form>
+
+      <div class="auth-divider">or</div>
+
+      <form method="POST" action="{% url 'google_login' %}?process=login{% if next_url %}&next={{ next_url|urlencode }}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-social">
+          <span class="google-mark" aria-hidden="true">G</span>
+          Sign in with Google
+        </button>
       </form>
     </div>
 

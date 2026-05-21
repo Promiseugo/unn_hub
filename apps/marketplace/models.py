@@ -1,7 +1,12 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from apps.core.models import BaseListingModel
+
+
+def default_listing_expiry():
+    return timezone.now() + timezone.timedelta(days=30)
 
 
 class Category(models.Model):
@@ -37,10 +42,8 @@ class SubCategory(models.Model):
 
 class Listing(BaseListingModel):
     CONDITION_CHOICES = [
-        ('new', 'New'),
-        ('like_new', 'Like New'),
-        ('good', 'Good'),
-        ('fair', 'Fair'),
+        ('brand_new', 'Brand New'),
+        ('used', 'Used'),
     ]
 
     seller = models.ForeignKey(
@@ -64,7 +67,7 @@ class Listing(BaseListingModel):
     condition = models.CharField(
         max_length=20,
         choices=CONDITION_CHOICES,
-        default='good',
+        default='used',
     )
     location = models.CharField(
         max_length=100,
@@ -78,9 +81,19 @@ class Listing(BaseListingModel):
         help_text="Optional. MP4, MOV or WebM. Max 50MB.",
     )
     view_count = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(default=default_listing_expiry)
 
     class Meta:
         ordering = ['-created_at']
+
+    @property
+    def is_expired(self):
+        return self.expires_at <= timezone.now()
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = default_listing_expiry()
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse('marketplace:listing-detail', kwargs={'pk': self.pk})

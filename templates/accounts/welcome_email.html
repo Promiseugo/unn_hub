@@ -1,0 +1,9 @@
+{% extends 'accounts/email_base.html' %}
+
+{% block body %}
+<h1 style="margin:0 0 10px;font-size:24px;line-height:1.25;color:#f0f0f0;">Welcome, {{ user.username }}</h1>
+<p style="margin:0 0 18px;color:#d0d0d0;line-height:1.7;font-size:15px;">
+  Your {{ site_name }} account has been created successfully. You can now buy, sell, find services, and message safely on campus.
+</p>
+<a href="{{ protocol }}://{{ domain }}{% url 'accounts:login' %}" style="display:inline-block;background:#c9a84c;color:#0d0d0d;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:10px;">Sign in</a>
+{% endblock %}

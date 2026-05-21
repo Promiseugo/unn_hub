@@ -30,7 +30,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
     inlines = [ListingImageInline]
-    list_display = ('title', 'seller', 'category', 'subcategory', 'price', 'condition', 'view_count', 'is_active', 'is_sold', 'created_at')
+    list_display = ('title', 'seller', 'category', 'subcategory', 'price', 'condition', 'view_count', 'is_active', 'is_sold', 'created_at', 'expires_at')
     list_filter = ('is_active', 'is_sold', 'category', 'subcategory', 'condition')
     search_fields = ('title', 'seller__email', 'description')
     list_editable = ('is_active', 'is_sold')

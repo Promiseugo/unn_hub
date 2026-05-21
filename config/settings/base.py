@@ -24,6 +24,11 @@ SITE_NAME = config('SITE_NAME', default='UniTraX')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unitrax.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='support@unitrax.com')
+ACCOUNT_LOGIN_ALERT_EMAILS = config('ACCOUNT_LOGIN_ALERT_EMAILS', default=False, cast=bool)
+IMAGE_UPLOAD_MAX_DIMENSION = config('IMAGE_UPLOAD_MAX_DIMENSION', default=1600, cast=int)
+IMAGE_UPLOAD_QUALITY = config('IMAGE_UPLOAD_QUALITY', default=82, cast=int)
+
+SITE_ID = config('SITE_ID', default=1, cast=int)
 
 
 # ---------------------------------------------
@@ -36,6 +41,7 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Enables Sites framework for social auth
 ]
 
 THIRD_PARTY_APPS = [
@@ -43,6 +49,10 @@ THIRD_PARTY_APPS = [
     'crispy_bootstrap5',
     'django_filters',
     'axes',               # Brute force protection
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 LOCAL_APPS = [
@@ -74,6 +84,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',             # Brute force -- after auth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required for django-allauth
 ]
 
 
@@ -84,6 +95,7 @@ MIDDLEWARE = [
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',        # Must be first
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',  # Enables allauth social login
 ]
 
 
@@ -206,7 +218,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 # ---------------------------------------------
 # MEDIA FILES
@@ -335,3 +346,33 @@ LOGGING = {
         },
     },
 }
+
+# --- django-allauth settings ---
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_UNIQUE_EMAIL = True
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+GOOGLE_CLIENT_ID = config('SOCIAL_AUTH_GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('SOCIAL_AUTH_GOOGLE_CLIENT_SECRET', default='')
+
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'secret': GOOGLE_CLIENT_SECRET,
+        'key': '',
+        'settings': {'hidden': True},
+    }

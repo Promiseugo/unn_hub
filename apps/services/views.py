@@ -22,7 +22,13 @@ def service_list(request):
     services = ServiceOffer.objects.filter(is_active=True).select_related('provider', 'category')
     query = request.GET.get('q', '')
     if query:
-        services = services.filter(Q(title__icontains=query) | Q(description__icontains=query))
+        services = services.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(category__name__icontains=query)
+            | Q(subcategory__name__icontains=query)
+            | Q(provider__username__icontains=query)
+        )
     category_slug = request.GET.get('category', '')
     if category_slug:
         services = services.filter(category__slug=category_slug)

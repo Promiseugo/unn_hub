@@ -1,0 +1,13 @@
+{% extends 'accounts/email_base.html' %}
+
+{% block body %}
+<h1 style="margin:0 0 10px;font-size:24px;line-height:1.25;color:#f0f0f0;">New login detected</h1>
+<p style="margin:0 0 16px;color:#d0d0d0;line-height:1.7;font-size:15px;">
+  There was a new login to your {{ site_name }} account.
+</p>
+<div style="background:#1e1e1e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:18px;color:#d0d0d0;font-size:14px;line-height:1.7;">
+  <strong style="color:#f0f0f0;">IP:</strong> {{ ip_address }}<br>
+  <strong style="color:#f0f0f0;">Device:</strong> {{ user_agent }}
+</div>
+<a href="{{ protocol }}://{{ domain }}{% url 'accounts:password-reset' %}" style="display:inline-block;background:#c9a84c;color:#0d0d0d;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:10px;">Reset password</a>
+{% endblock %}
