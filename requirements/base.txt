@@ -1,5 +1,5 @@
-Django==5.0.6
-Pillow==10.4.0
+Django==5.2.14
+Pillow==12.2.0
 python-decouple==3.8
 django-crispy-forms==2.1
 crispy-bootstrap5==2024.2
@@ -9,3 +9,4 @@ argon2-cffi==23.1.0
 django-axes==6.4.0
 django-ratelimit==4.1.0
 django-allauth==65.16.1
+idna==3.15

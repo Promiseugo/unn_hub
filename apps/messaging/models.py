@@ -45,6 +45,10 @@ class Message(TimeStampedModel):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['thread', 'is_read', 'sender']),
+            models.Index(fields=['sender', '-created_at']),
+        ]
 
     def __str__(self):
         return f"Message from {self.sender.email} in Thread {self.thread.id}"

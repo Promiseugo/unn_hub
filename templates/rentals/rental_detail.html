@@ -96,6 +96,27 @@
   #ugc-lb-rental .lb-arr:hover { background: var(--gold); color: #0d0d0d; }
   #ugc-lb-rental .lb-arr.lft { left: 20px; }
   #ugc-lb-rental .lb-arr.rgt { right: 20px; }
+
+  @media (max-width: 640px) {
+    .breadcrumb {
+      font-size: 0.78rem;
+      row-gap: 4px;
+      margin-top: 1rem;
+    }
+    .row.g-4 { --bs-gutter-x: 0; --bs-gutter-y: 1rem; }
+    .card-body.p-4 { padding: 1rem !important; }
+    h2.fw-bold { font-size: 1.25rem; overflow-wrap: anywhere; }
+    .fs-3 { font-size: 1.45rem !important; overflow-wrap: anywhere; }
+    .badge { max-width: 100%; white-space: normal; text-align: left; line-height: 1.35; }
+    #ugc-rental,
+    .ugc-empty { border-radius: 12px; }
+    #ugc-rental .arr { width: 36px; height: 36px; }
+    #ugc-rental .arr.lft { left: 8px; }
+    #ugc-rental .arr.rgt { right: 8px; }
+    #ugc-lb-rental .lb-arr { width: 40px; height: 40px; }
+    #ugc-lb-rental .lb-arr.lft { left: 8px; }
+    #ugc-lb-rental .lb-arr.rgt { right: 8px; }
+  }
 </style>
 {% endblock %}
 

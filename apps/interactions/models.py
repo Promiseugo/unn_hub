@@ -28,6 +28,10 @@ class Reaction(TimeStampedModel):
     class Meta:
         unique_together = ('user', 'content_type', 'object_id')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id', 'reaction_type']),
+            models.Index(fields=['user', 'content_type', 'object_id']),
+        ]
 
     def __str__(self):
         return f"{self.user.username} {self.reaction_type}"
@@ -60,6 +64,10 @@ class Comment(TimeStampedModel):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id', 'is_active', 'parent']),
+            models.Index(fields=['user', '-created_at']),
+        ]
 
     def __str__(self):
         return f"Comment by {self.user.username}"

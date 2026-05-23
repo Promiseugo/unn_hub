@@ -6,6 +6,10 @@ class SubCategoryInline(admin.TabularInline):
     model = SubCategory
     extra = 1
     prepopulated_fields = {'slug': ('name',)}
+    fields = (
+        'name', 'slug', 'icon', 'banner_image',
+        'is_featured', 'sort_order', 'seo_title', 'seo_description',
+    )
 
 
 class ListingImageInline(admin.TabularInline):
@@ -16,15 +20,43 @@ class ListingImageInline(admin.TabularInline):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
-    list_display = ('name', 'slug', 'icon')
+    list_display = ('sort_order', 'name', 'slug', 'icon', 'is_featured')
+    list_display_links = ('name',)
+    list_editable = ('sort_order', 'is_featured')
+    search_fields = ('name', 'slug', 'seo_title', 'seo_description')
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'icon', 'banner_image'),
+        }),
+        ('Display', {
+            'fields': ('is_featured', 'sort_order'),
+        }),
+        ('SEO', {
+            'fields': ('seo_title', 'seo_description'),
+        }),
+    )
     inlines = [SubCategoryInline]
 
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
-    list_display = ('name', 'category', 'slug')
-    list_filter = ('category',)
+    list_display = ('sort_order', 'name', 'category', 'slug', 'icon', 'is_featured')
+    list_display_links = ('name',)
+    list_editable = ('sort_order', 'is_featured')
+    list_filter = ('category', 'is_featured')
+    search_fields = ('name', 'slug', 'seo_title', 'seo_description')
+    fieldsets = (
+        (None, {
+            'fields': ('category', 'name', 'slug', 'icon', 'banner_image'),
+        }),
+        ('Display', {
+            'fields': ('is_featured', 'sort_order'),
+        }),
+        ('SEO', {
+            'fields': ('seo_title', 'seo_description'),
+        }),
+    )
 
 
 @admin.register(Listing)

@@ -2,11 +2,23 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 from .models import Review
 from .forms import ReviewForm
 
 
+ALLOWED_REVIEW_MODELS = {
+    ('marketplace', 'listing'),
+    ('services', 'serviceoffer'),
+    ('rentals', 'rentallisting'),
+    ('accounts', 'profile'),
+}
+
+
 @login_required
+@require_POST
+@ratelimit(key='user_or_ip', rate='10/m', method='POST', block=True)
 def add_review(request, app_label, model_name, object_id):
     """
     Generic review view — handles any reviewable object.
@@ -17,7 +29,8 @@ def add_review(request, app_label, model_name, object_id):
       /reviews/add/services/serviceoffer/<uuid>/
       /reviews/add/accounts/profile/<int>/
     """
-    if request.method != 'POST':
+    if (app_label, model_name) not in ALLOWED_REVIEW_MODELS:
+        messages.error(request, "This content cannot be reviewed.")
         return redirect('marketplace:listing-list')
 
     ct = get_object_or_404(ContentType, app_label=app_label, model=model_name)

@@ -7,11 +7,20 @@ from apps.core.models import BaseListingModel
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
-    icon = models.CharField(max_length=10, blank=True, help_text="Emoji icon e.g. 🎨")
+    icon = models.CharField(max_length=10, blank=True, help_text="Emoji icon")
+    banner_image = models.ImageField(
+        upload_to='service-categories/banners/',
+        blank=True,
+        null=True,
+    )
+    is_featured = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=1000)
+    seo_title = models.CharField(max_length=160, blank=True)
+    seo_description = models.TextField(blank=True)
 
     class Meta:
         verbose_name_plural = 'Service Categories'
-        ordering = ['name']
+        ordering = ['sort_order', 'name']
 
     def __str__(self):
         return self.name
@@ -25,10 +34,20 @@ class ServiceSubCategory(models.Model):
     )
     name = models.CharField(max_length=100)
     slug = models.SlugField()
+    icon = models.CharField(max_length=10, blank=True, help_text="Emoji icon")
+    banner_image = models.ImageField(
+        upload_to='service-subcategories/banners/',
+        blank=True,
+        null=True,
+    )
+    is_featured = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=1000)
+    seo_title = models.CharField(max_length=160, blank=True)
+    seo_description = models.TextField(blank=True)
 
     class Meta:
         verbose_name_plural = 'Service Sub Categories'
-        ordering = ['name']
+        ordering = ['sort_order', 'name']
         unique_together = ('category', 'slug')
 
     def __str__(self):
@@ -80,6 +99,11 @@ class ServiceOffer(BaseListingModel):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_active', '-created_at']),
+            models.Index(fields=['category', 'subcategory', '-created_at']),
+            models.Index(fields=['delivery_mode', '-created_at']),
+        ]
 
     def get_absolute_url(self):
         return reverse('services:service-detail', kwargs={'pk': self.pk})

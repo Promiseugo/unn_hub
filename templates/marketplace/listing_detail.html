@@ -62,6 +62,9 @@
   }
 
   .sbadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-family: var(--font-head);
     font-size: 0.65rem;
     font-weight: 700;
@@ -473,6 +476,31 @@
   #ugc-lb-listing .lb-arr:hover { background: var(--gold); color: #0d0d0d; }
   #ugc-lb-listing .lb-arr.lft { left: 20px; }
   #ugc-lb-listing .lb-arr.rgt { right: 20px; }
+
+  @media (max-width: 640px) {
+    .detail-wrap { padding: 1.25rem 0 3rem; }
+    .breadcrumb-row { margin-bottom: 1.25rem; font-size: 0.76rem; }
+    .detail-grid { gap: 1.5rem; }
+    .detail-panel { position: static; }
+    .detail-card,
+    .seller-card,
+    .detail-desc-card,
+    .review-form-card,
+    .review-card { padding: 1rem; border-radius: 12px; }
+    .detail-title { font-size: 1.28rem; overflow-wrap: anywhere; }
+    .detail-price { font-size: 1.65rem; overflow-wrap: anywhere; }
+    .detail-meta li { align-items: flex-start; }
+    .seller-row { align-items: flex-start; }
+    .review-header { flex-direction: column; gap: 6px; }
+    #ugc-listing,
+    .ugc-empty { border-radius: 12px; }
+    #ugc-listing .arr { width: 36px; height: 36px; }
+    #ugc-listing .arr.lft { left: 8px; }
+    #ugc-listing .arr.rgt { right: 8px; }
+    #ugc-lb-listing .lb-arr { width: 40px; height: 40px; }
+    #ugc-lb-listing .lb-arr.lft { left: 8px; }
+    #ugc-lb-listing .lb-arr.rgt { right: 8px; }
+  }
 </style>
 {% endblock %}
 
@@ -485,7 +513,13 @@
     {% if listing.category %}
       <span class="sep">/</span>
       <a href="{% url 'marketplace:listing-list' %}?category={{ listing.category.slug }}">
-        {{ listing.category.name }}
+        {{ listing.category.icon|default:"📦" }} {{ listing.category.name }}
+      </a>
+    {% endif %}
+    {% if listing.subcategory %}
+      <span class="sep">/</span>
+      <a href="{% url 'marketplace:listing-list' %}?category={{ listing.category.slug }}&subcategory={{ listing.subcategory.slug }}">
+        {{ listing.subcategory.icon|default:listing.category.icon }} {{ listing.subcategory.name }}
       </a>
     {% endif %}
     <span class="sep">/</span>
@@ -598,7 +632,10 @@
           {% endif %}
           <span class="sbadge sbadge-{{ listing.condition }}">{{ listing.get_condition_display }}</span>
           {% if listing.category %}
-            <span class="sbadge sbadge-cat">{{ listing.category.name }}</span>
+            <span class="sbadge sbadge-cat">{{ listing.category.icon|default:"📦" }} {{ listing.category.name }}</span>
+          {% endif %}
+          {% if listing.subcategory %}
+            <span class="sbadge sbadge-cat">{{ listing.subcategory.icon|default:listing.category.icon }} {{ listing.subcategory.name }}</span>
           {% endif %}
         </div>
 

@@ -16,10 +16,9 @@ except ImportError:
             setattr(instance, field, file)
 
 def service_list(request):
-    from django.db.models import Count, Q as DQ
-    from apps.interactions.models import Reaction, Comment
+    from apps.interactions.utils import with_interaction_counts
 
-    services = ServiceOffer.objects.filter(is_active=True).select_related('provider', 'category')
+    services = ServiceOffer.objects.filter(is_active=True).select_related('provider', 'category', 'subcategory')
     query = request.GET.get('q', '')
     if query:
         services = services.filter(
@@ -36,11 +35,7 @@ def service_list(request):
     if subcategory_slug:
         services = services.filter(subcategory__slug=subcategory_slug)
 
-    ct = ContentType.objects.get_for_model(ServiceOffer)
-    services = services.annotate(
-        like_count=Count('id', filter=DQ(id__in=Reaction.objects.filter(content_type=ct, reaction_type='like').values('object_id'))),
-        comment_count=Count('id', filter=DQ(id__in=Comment.objects.filter(content_type=ct, is_active=True, parent=None).values('object_id'))),
-    )
+    services = with_interaction_counts(services, ServiceOffer)
 
     services = services.order_by('-created_at')
     paginator = Paginator(services, 12)
@@ -58,15 +53,15 @@ def service_detail(request, pk):
     from apps.reviews.models import Review
     from apps.reviews.forms import ReviewForm
     from apps.interactions.models import Reaction, Comment
+    from apps.interactions.utils import should_count_view
 
     service = get_object_or_404(
-        ServiceOffer.objects.select_related('provider__profile'),
+        ServiceOffer.objects.select_related('provider__profile', 'category', 'subcategory'),
         pk=pk,
         is_active=True,
     )
 
-    # Increment view count (skip provider's own views)
-    if not request.user.is_authenticated or request.user != service.provider:
+    if should_count_view(request, service):
         from django.db import models as db_models
         ServiceOffer.objects.filter(pk=pk).update(view_count=db_models.F('view_count') + 1)
         service.refresh_from_db(fields=['view_count'])

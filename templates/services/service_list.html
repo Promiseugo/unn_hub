@@ -5,8 +5,9 @@
 <style>
   .page-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
   .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .page-header > div:first-child { min-width: 0; }
   .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; }
-  .page-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+  .page-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; overflow-wrap: anywhere; }
   .btn-post { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
   .btn-post:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
 
@@ -24,9 +25,10 @@
   .svc-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0; transition: opacity 0.3s; }
   .svc-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,0.25); }
   .svc-card:hover::after { opacity: 1; }
-  .svc-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; flex-shrink: 0; }
-  .svc-icon svg { color: var(--gold); }
+  .svc-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; flex-shrink: 0; font-size: 1.35rem; }
+  .svc-emoji { line-height: 1; }
   .svc-category { font-size: 0.65rem; font-weight: 700; font-family: var(--font-head); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .svc-subcategory { font-size: 0.76rem; color: var(--text-muted); margin: -2px 0 8px; }
   .svc-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; text-decoration: none; display: block; line-height: 1.3; }
   .svc-title::after { content: ''; position: absolute; inset: 0; }
   .svc-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; flex: 1; }
@@ -51,6 +53,30 @@
   .page-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.875rem; font-family: var(--font-head); font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; transition: all 0.2s; }
   .page-btn:hover { border-color: var(--gold); color: var(--gold); }
   .page-btn.active { background: var(--gold); border-color: var(--gold); color: #0d0d0d; }
+
+  @media (max-width: 640px) {
+    .page-wrap { padding: 1.5rem 0 3rem; }
+    .page-header { align-items: stretch; margin-bottom: 1.25rem; }
+    .page-header > div:first-child { width: 100%; }
+    .page-header h1 { font-size: 1.5rem; }
+    .btn-post,
+    .btn-search { width: 100%; justify-content: center; }
+    .search-bar { flex-direction: column; padding: 0.875rem; gap: 0.65rem; }
+    .search-input-wrap { width: 100%; min-width: 0; }
+    .service-grid { grid-template-columns: 1fr; gap: 0.875rem; }
+    .svc-card { padding: 1rem; border-radius: 12px; }
+    .svc-footer { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .svc-meta { align-items: flex-start; }
+    .svc-price { overflow-wrap: anywhere; }
+    .pagination-wrap { flex-wrap: wrap; margin-top: 2rem; }
+    .page-btn { padding: 7px 11px; }
+  }
+
+  @media (max-width: 360px) {
+    .svc-card { padding: 0.875rem; }
+    .svc-title { font-size: 0.94rem; }
+    .svc-desc { font-size: 0.82rem; }
+  }
 </style>
 {% endblock %}
 
@@ -97,27 +123,12 @@
     <div class="service-grid">
       {% for service in page_obj %}
         <div class="svc-card">
-          <div class="svc-icon">
-            {% if service.category %}{% with slug=service.category.slug %}
-              {% if "tutor" in slug or "teach" in slug %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
-              {% elif "repair" in slug or "tech" in slug %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              {% elif "design" in slug %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-              {% elif "deliver" in slug %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-              {% elif "photo" in slug or "video" in slug %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-              {% else %}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-              {% endif %}
-            {% endwith %}{% else %}
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {% endif %}
+          <div class="svc-icon" aria-hidden="true">
+            <span class="svc-emoji">{% if service.subcategory and service.subcategory.icon %}{{ service.subcategory.icon }}{% elif service.category and service.category.icon %}{{ service.category.icon }}{% else %}🛠️{% endif %}</span>
           </div>
 
           {% if service.category %}<div class="svc-category">{{ service.category.name }}</div>{% endif %}
+          {% if service.subcategory %}<div class="svc-subcategory">{{ service.subcategory.name }}</div>{% endif %}
           <a href="{{ service.get_absolute_url }}" class="svc-title">{{ service.title }}</a>
           <p class="svc-desc">{{ service.description|truncatechars:110 }}</p>
 

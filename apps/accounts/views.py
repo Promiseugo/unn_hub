@@ -15,12 +15,12 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_str
+from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
-from django.utils.encoding import force_bytes
 from .forms import RegisterForm, LoginForm, ProfileUpdateForm, UserUpdateForm
 from .models import User, Profile
 
@@ -183,7 +183,9 @@ def profile_view(request, username):
 
     profile_user = get_object_or_404(User, username=username)
     listings = profile_user.listings.filter(
-        is_active=True
+        is_active=True,
+        is_sold=False,
+        expires_at__gt=timezone.now(),
     ).order_by('-created_at')[:6]
     services = profile_user.services.filter(
         is_active=True

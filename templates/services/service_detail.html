@@ -2,6 +2,23 @@
 
 {% block title %}{{ service.title }} — UniTraX{% endblock %}
 
+{% block extra_css %}
+<style>
+  @media (max-width: 640px) {
+    .breadcrumb {
+      font-size: 0.78rem;
+      row-gap: 4px;
+      margin-top: 1rem;
+    }
+    .card-body.p-4 { padding: 1rem !important; }
+    .row.g-4 { --bs-gutter-x: 0; --bs-gutter-y: 1rem; }
+    h2.fw-bold { font-size: 1.25rem; overflow-wrap: anywhere; }
+    .fs-3 { font-size: 1.45rem !important; overflow-wrap: anywhere; }
+    .badge { max-width: 100%; white-space: normal; text-align: left; line-height: 1.35; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <nav aria-label="breadcrumb" class="mb-3">
@@ -10,7 +27,14 @@
     {% if service.category %}
       <li class="breadcrumb-item">
         <a href="{% url 'services:service-list' %}?category={{ service.category.slug }}">
-          {{ service.category.name }}
+          {{ service.category.icon|default:"🛠️" }} {{ service.category.name }}
+        </a>
+      </li>
+    {% endif %}
+    {% if service.subcategory %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'services:service-list' %}?category={{ service.category.slug }}&subcategory={{ service.subcategory.slug }}">
+          {{ service.subcategory.icon|default:service.category.icon }} {{ service.subcategory.name }}
         </a>
       </li>
     {% endif %}
@@ -23,7 +47,10 @@
     <div class="card border-0 shadow-sm">
       <div class="card-body p-4">
         {% if service.category %}
-          <span class="badge bg-secondary mb-2">{{ service.category.name }}</span>
+          <span class="badge bg-secondary mb-2">{{ service.category.icon|default:"🛠️" }} {{ service.category.name }}</span>
+        {% endif %}
+        {% if service.subcategory %}
+          <span class="badge bg-secondary mb-2">{{ service.subcategory.icon|default:service.category.icon }} {{ service.subcategory.name }}</span>
         {% endif %}
         <h2 class="fw-bold">{{ service.title }}</h2>
         <p class="text-success fw-bold fs-3 mb-1">

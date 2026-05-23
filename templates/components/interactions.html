@@ -210,6 +210,20 @@
   color: var(--text-muted);
   font-size: 0.875rem;
 }
+
+@media (max-width: 520px) {
+  .ixn-bar { gap: 0.5rem; }
+  .ixn-btn { flex: 1 1 calc(50% - 0.5rem); justify-content: center; padding: 8px 10px; }
+  .ixn-form-wrap { padding: 0.75rem; gap: 8px; }
+  .ixn-form-actions { flex-direction: column-reverse; }
+  .ixn-submit,
+  .ixn-cancel-reply { width: 100%; }
+  .ixn-comment { gap: 8px; }
+  .ixn-comment-body { padding: 9px 10px; min-width: 0; }
+  .ixn-comment-text { overflow-wrap: anywhere; }
+  .ixn-replies { padding-left: 0.65rem; margin-left: -0.15rem; }
+  .ixn-login-prompt a { display: block; margin: 0.75rem 0 0; }
+}
 </style>
 
 {% with react_url_base="/interactions/react/"|add:app_label|add:"/"|add:model_name|add:"/"|add:object_id|add:"/" comment_url_base="/interactions/comment/"|add:app_label|add:"/"|add:model_name|add:"/"|add:object_id|add:"/" %}
@@ -400,8 +414,7 @@ function ixnSubmitComment(objId, appLabel, modelName, parentId) {
       var list = document.getElementById('ixn-list-' + objId);
       if (list) list.insertAdjacentHTML('beforeend', ixnCommentHTML(data, objId, appLabel, modelName));
     }
-    // Update counts
-    ixnUpdateCount(objId, 1);
+    if (!parentId) ixnUpdateCount(objId, 1);
   });
 }
 
@@ -428,8 +441,9 @@ function ixnDeleteComment(commentId, objId) {
   .then(function(data) {
     if (data.deleted) {
       var el = document.getElementById('ixn-comment-' + commentId);
+      var isReply = el && el.parentElement && el.parentElement.classList.contains('ixn-replies');
       if (el) el.remove();
-      ixnUpdateCount(objId, -1);
+      if (!isReply) ixnUpdateCount(objId, -1);
     }
   });
 }

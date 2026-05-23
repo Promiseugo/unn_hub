@@ -21,14 +21,13 @@ except ImportError:
         return file
 
 def listing_list(request):
-    from django.db.models import Count, Q as DQ
-    from apps.interactions.models import Reaction, Comment
+    from apps.interactions.utils import with_interaction_counts
 
     deactivate_expired_listings()
 
     listings = Listing.objects.filter(
         is_active=True, is_sold=False, expires_at__gt=timezone.now()
-    ).select_related('seller', 'category').prefetch_related('images')
+    ).select_related('seller', 'category', 'subcategory').prefetch_related('images')
 
     query = request.GET.get('q', '')
     if query:
@@ -51,27 +50,9 @@ def listing_list(request):
     if condition in dict(Listing.CONDITION_CHOICES):
         listings = listings.filter(condition=condition)
 
-    # Annotate like and comment counts
-    ct = ContentType.objects.get_for_model(Listing)
-    listings = listings.annotate(
-        like_count=Count(
-            'id',
-            filter=DQ(
-                id__in=Reaction.objects.filter(
-                    content_type=ct, reaction_type='like'
-                ).values('object_id')
-            )
-        ),
-        comment_count=Count(
-            'id',
-            filter=DQ(
-                id__in=Comment.objects.filter(
-                    content_type=ct, is_active=True, parent=None
-                ).values('object_id')
-            )
-        ),
-    )
+    listings = with_interaction_counts(listings, Listing)
 
+    listings = listings.order_by('-created_at')
     paginator = Paginator(listings, 12)
     page = paginator.get_page(request.GET.get('page'))
     categories = Category.objects.prefetch_related('subcategories').all()
@@ -91,18 +72,18 @@ def listing_detail(request, pk):
     from apps.reviews.models import Review
     from apps.reviews.forms import ReviewForm
     from apps.interactions.models import Reaction, Comment
+    from apps.interactions.utils import should_count_view
 
     listing = get_object_or_404(
         Listing.objects.select_related(
-            'seller__profile'
+            'seller__profile', 'category', 'subcategory'
         ).prefetch_related('images'),
         pk=pk,
         is_active=True,
         expires_at__gt=timezone.now(),
     )
 
-    # Increment view count (skip owner's own views)
-    if not request.user.is_authenticated or request.user != listing.seller:
+    if should_count_view(request, listing):
         Listing.objects.filter(pk=pk).update(view_count=models.F('view_count') + 1)
         listing.refresh_from_db(fields=['view_count'])
 

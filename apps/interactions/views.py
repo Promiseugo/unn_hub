@@ -4,11 +4,22 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.decorators import ratelimit
 from .models import Reaction, Comment
+from .utils import is_content_owner
+
+
+ALLOWED_INTERACTION_MODELS = {
+    ('marketplace', 'listing'),
+    ('services', 'serviceoffer'),
+    ('rentals', 'rentallisting'),
+}
 
 
 def _get_ct_and_object(app_label, model_name, object_id):
+    if (app_label, model_name) not in ALLOWED_INTERACTION_MODELS:
+        return None, None, None
+
     ct = get_object_or_404(ContentType, app_label=app_label, model=model_name)
     try:
         obj = ct.get_object_for_this_type(pk=object_id)
@@ -26,11 +37,14 @@ def _redirect_to_object(obj):
 # ── Reactions ────────────────────────────────────────────────
 @login_required
 @require_POST
+@ratelimit(key='user_or_ip', rate='60/m', method='POST', block=True)
 def react(request, app_label, model_name, object_id):
     """Toggle or switch like/dislike. Returns JSON for AJAX calls."""
     ct, obj, _ = _get_ct_and_object(app_label, model_name, object_id)
     if obj is None:
         return JsonResponse({'error': 'Not found'}, status=404)
+    if is_content_owner(request.user, obj):
+        return JsonResponse({'error': 'You cannot react to your own post.'}, status=403)
 
     try:
         data = json.loads(request.body)
@@ -85,6 +99,7 @@ def react(request, app_label, model_name, object_id):
 # ── Comments ─────────────────────────────────────────────────
 @login_required
 @require_POST
+@ratelimit(key='user_or_ip', rate='20/m', method='POST', block=True)
 def add_comment(request, app_label, model_name, object_id):
     ct, obj, _ = _get_ct_and_object(app_label, model_name, object_id)
     if obj is None:

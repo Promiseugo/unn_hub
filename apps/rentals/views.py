@@ -19,9 +19,7 @@ except ImportError:
         return file
 
 def rental_list(request):
-    from django.db.models import Count, Q as DQ
-    from apps.interactions.models import Reaction, Comment
-    from django.contrib.contenttypes.models import ContentType as CT
+    from apps.interactions.utils import with_interaction_counts
 
     rentals = RentalListing.objects.filter(
         is_active=True, is_taken=False
@@ -50,11 +48,7 @@ def rental_list(request):
             Q(gender_preference=gender) | Q(gender_preference='any')
         )
 
-    ct = CT.objects.get_for_model(RentalListing)
-    rentals = rentals.annotate(
-        like_count=Count('id', filter=DQ(id__in=Reaction.objects.filter(content_type=ct, reaction_type='like').values('object_id'))),
-        comment_count=Count('id', filter=DQ(id__in=Comment.objects.filter(content_type=ct, is_active=True, parent=None).values('object_id'))),
-    )
+    rentals = with_interaction_counts(rentals, RentalListing)
 
     rentals = rentals.order_by('-created_at')
     paginator = Paginator(rentals, 12)
@@ -74,6 +68,7 @@ def rental_detail(request, pk):
     from apps.reviews.models import Review
     from apps.reviews.forms import ReviewForm
     from apps.interactions.models import Reaction, Comment
+    from apps.interactions.utils import should_count_view
 
     rental = get_object_or_404(
         RentalListing.objects.select_related(
@@ -83,8 +78,7 @@ def rental_detail(request, pk):
         is_active=True,
     )
 
-    # Increment view count (skip landlord's own views)
-    if not request.user.is_authenticated or request.user != rental.landlord:
+    if should_count_view(request, rental):
         from django.db import models as db_models
         RentalListing.objects.filter(pk=pk).update(view_count=db_models.F('view_count') + 1)
         rental.refresh_from_db(fields=['view_count'])
