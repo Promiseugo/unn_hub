@@ -8,6 +8,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv*/
 venv/
 env/
 
@@ -19,6 +20,9 @@ media/
 
 # Environment
 .env
+.env
+.env.*
+!.env.example
 
 # VS Code
 .vscode/
