@@ -3,8 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+from django_ratelimit.decorators import ratelimit
 from .models import Thread, Message
 from .forms import MessageForm, NewThreadForm
+from .services import create_moderated_message
+from apps.trust.utils import log_audit
 
 User = get_user_model()
 
@@ -44,6 +47,7 @@ def inbox(request):
 
 
 @login_required
+@ratelimit(key='user_or_ip', rate='20/m', method='POST', block=True)
 def thread_detail(request, pk):
     thread = get_object_or_404(
         Thread.objects.prefetch_related('messages__sender', 'participants'),
@@ -62,11 +66,14 @@ def thread_detail(request, pk):
     if request.method == 'POST':
         form = MessageForm(request.POST)
         if form.is_valid():
-            msg = form.save(commit=False)
-            msg.thread = thread
-            msg.sender = request.user
-            msg.save()
+            msg = create_moderated_message(
+                request=request,
+                thread=thread,
+                sender=request.user,
+                body=form.cleaned_data['body'],
+            )
             thread.save()   # bump updated_at
+            log_audit(request, 'message_sent', msg, metadata={'thread_id': thread.pk})
             return redirect('messaging:thread-detail', pk=thread.pk)
 
     return render(request, 'messaging/thread_detail.html', {
@@ -77,6 +84,7 @@ def thread_detail(request, pk):
 
 
 @login_required
+@ratelimit(key='user_or_ip', rate='10/m', method='POST', block=True)
 def new_thread(request, username):
     recipient = get_object_or_404(User, username=username)
 
@@ -98,7 +106,8 @@ def new_thread(request, username):
             subject=form.cleaned_data.get('subject', '')
         )
         thread.participants.add(request.user, recipient)
-        Message.objects.create(
+        create_moderated_message(
+            request=request,
             thread=thread,
             sender=request.user,
             body=form.cleaned_data['body'],

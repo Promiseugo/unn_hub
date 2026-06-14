@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Reaction, Comment
+from .models import Comment, ContentView, Reaction
 
 
 @admin.register(Reaction)
@@ -23,3 +23,10 @@ class CommentAdmin(admin.ModelAdmin):
     def deactivate_comments(self, request, queryset):
         queryset.update(is_active=False)
     deactivate_comments.short_description = 'Deactivate selected comments'
+
+
+@admin.register(ContentView)
+class ContentViewAdmin(admin.ModelAdmin):
+    list_display = ['content_type', 'object_id', 'user', 'session_key', 'created_at']
+    list_filter = ['content_type', 'created_at']
+    search_fields = ['user__username', 'session_key', 'object_id']

@@ -38,6 +38,7 @@
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form|crispy }}
+      {% if enable_video_uploads %}
       {# ── Video Upload ──────────────────────────── #}
       <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
         <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;display:flex;align-items:center;gap:6px;">
@@ -83,6 +84,7 @@
         })();
         </script>
       </div>
+      {% endif %}
 
 
       <div style="display:flex;gap:0.875rem;flex-wrap:wrap;margin-top:1.5rem;">
@@ -107,7 +109,7 @@
       <li>Be specific about what's included in your price</li>
       <li>Mention your experience, qualifications or past work</li>
       <li>State your availability — days, hours, response time</li>
-      <li>Upload a short intro video to build trust instantly</li>
+      {% if enable_video_uploads %}<li>Upload a short intro video to build trust instantly</li>{% endif %}
       <li>Respond to inquiries quickly — first response wins</li>
     </ul>
   </div>

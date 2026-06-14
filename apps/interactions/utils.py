@@ -1,8 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db import IntegrityError
 from django.db.models import CharField, Count, IntegerField, OuterRef, Subquery, Value
 from django.db.models.functions import Cast, Coalesce, Replace
 
-from .models import Comment, Reaction
+from .models import Comment, ContentView, Reaction
 
 
 OWNER_FIELD_BY_MODEL = {
@@ -26,6 +27,38 @@ def is_content_owner(user, obj):
 
 def should_count_view(request, obj):
     if is_content_owner(request.user, obj):
+        return False
+
+    content_type = ContentType.objects.get_for_model(obj)
+    object_id = str(obj.pk)
+
+    if request.user.is_authenticated:
+        try:
+            _, created = ContentView.objects.get_or_create(
+                content_type=content_type,
+                object_id=object_id,
+                user=request.user,
+                defaults={"session_key": request.session.session_key},
+            )
+            return created
+        except IntegrityError:
+            return False
+
+    session_key = request.session.session_key
+    if not session_key:
+        request.session.save()
+        session_key = request.session.session_key
+
+    try:
+        _, created = ContentView.objects.get_or_create(
+            content_type=content_type,
+            object_id=object_id,
+            user=None,
+            session_key=session_key,
+        )
+        if not created:
+            return False
+    except IntegrityError:
         return False
 
     object_key = f"{obj._meta.app_label}.{obj._meta.model_name}:{obj.pk}"

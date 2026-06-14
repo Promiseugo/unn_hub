@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from apps.core.models import BaseListingModel
 
 
@@ -55,6 +56,17 @@ class ServiceSubCategory(models.Model):
 
 
 class ServiceOffer(BaseListingModel):
+    APPROVAL_PENDING = 'pending'
+    APPROVAL_APPROVED = 'approved'
+    APPROVAL_REJECTED = 'rejected'
+    APPROVAL_FLAGGED = 'flagged'
+    APPROVAL_CHOICES = [
+        (APPROVAL_PENDING, 'Pending review'),
+        (APPROVAL_APPROVED, 'Approved'),
+        (APPROVAL_REJECTED, 'Rejected'),
+        (APPROVAL_FLAGGED, 'Flagged'),
+    ]
+
     DELIVERY_CHOICES = [
         ('online', 'Online'),
         ('physical', 'Physical'),
@@ -96,6 +108,22 @@ class ServiceOffer(BaseListingModel):
         help_text="Optional intro video. MP4, MOV or WebM. Max 50MB.",
     )
     view_count = models.PositiveIntegerField(default=0)
+    approval_status = models.CharField(
+        max_length=16,
+        choices=APPROVAL_CHOICES,
+        default=APPROVAL_APPROVED,
+    )
+    risk_score = models.PositiveSmallIntegerField(default=0)
+    risk_reasons = models.JSONField(default=list, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_services',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -103,6 +131,7 @@ class ServiceOffer(BaseListingModel):
             models.Index(fields=['is_active', '-created_at']),
             models.Index(fields=['category', 'subcategory', '-created_at']),
             models.Index(fields=['delivery_mode', '-created_at']),
+            models.Index(fields=['approval_status', 'risk_score', '-created_at']),
         ]
 
     def get_absolute_url(self):

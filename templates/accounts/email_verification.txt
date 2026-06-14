@@ -1,7 +1,13 @@
 Hi {{ user.username }},
 
-Please verify your {{ site_name }} email address:
+Please verify your {{ site_name }} email address.
+
+{% if otp_code %}
+Your verification code is: {{ otp_code }}
+It expires in 10 minutes.
+{% else %}
 {{ protocol }}://{{ domain }}{% url 'accounts:verify-email' uid token %}
+{% endif %}
 
 If you did not create this account, please ignore this email.
 

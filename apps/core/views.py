@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
 from django.db.models import Count
 
 
@@ -11,12 +12,12 @@ def landing(request):
         from apps.marketplace.models import Listing
         from apps.services.models import ServiceOffer
         from apps.rentals.models import RentalListing
-        from apps.accounts.models import User
+        User = get_user_model()
 
         context = {
-            'listing_count': Listing.objects.filter(is_active=True).count(),
-            'service_count': ServiceOffer.objects.filter(is_active=True).count(),
-            'rental_count':  RentalListing.objects.filter(is_active=True).count(),
+            'listing_count': Listing.objects.filter(is_active=True, approval_status='approved', deleted_at__isnull=True).count(),
+            'service_count': ServiceOffer.objects.filter(is_active=True, approval_status='approved', deleted_at__isnull=True).count(),
+            'rental_count':  RentalListing.objects.filter(is_active=True, approval_status='approved', deleted_at__isnull=True).count(),
             'user_count':    User.objects.filter(is_active=True).count(),
         }
     except Exception:

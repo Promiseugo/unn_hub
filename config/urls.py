@@ -33,6 +33,7 @@ urlpatterns = [
     path('reviews/', include('apps.reviews.urls')),
     path('accommodation/', include('apps.rentals.urls')),
     path('interactions/', include('apps.interactions.urls')),
+    path('trust/', include('apps.trust.urls')),
 ]
 
 if settings.DEBUG:

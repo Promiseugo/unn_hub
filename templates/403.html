@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Access Denied — UniTraX{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:6rem 1rem;">
+  <div style="font-size:5rem;font-family:var(--font-head);font-weight:900;color:var(--gold);">403</div>
+  <h1 style="font-size:1.4rem;margin:0.5rem 0 1rem;">Access Denied</h1>
+  <p style="color:var(--text-muted);max-width:360px;margin:0 auto 2rem;">
+    You don't have permission to access this page.
+  </p>
+  <a href="/" style="background:var(--gold);color:#0d0d0d;font-family:var(--font-head);font-weight:700;padding:10px 28px;border-radius:8px;text-decoration:none;">
+    Back to Home
+  </a>
+</div>
+{% endblock %}

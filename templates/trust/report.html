@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Report safety issue — UniTraX{% endblock %}
+
+{% block content %}
+<div style="max-width:620px;margin:0 auto;padding:3rem 0;">
+  <h1 style="font-size:1.6rem;">Report a safety issue</h1>
+  <p style="color:var(--text-muted);">Reports are reviewed by moderators. False reports may lead to restrictions.</p>
+  <form method="post" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn-gold" type="submit">Submit report</button>
+  </form>
+</div>
+{% endblock %}

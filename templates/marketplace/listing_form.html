@@ -91,6 +91,7 @@
           {# Hidden input carries the chosen main index to the view #}
           <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
 
+          {% if enable_video_uploads %}
           {# ── Video Upload #}
       {# ── Video Upload ──────────────────────────── #}
       <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
@@ -137,6 +138,7 @@
         })();
         </script>
       </div>
+          {% endif %}
 
 
           <hr class="my-4">

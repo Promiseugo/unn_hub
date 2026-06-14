@@ -3,10 +3,8 @@
 
 {% block extra_css %}
 <style>
-  .rnt-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
-  .rnt-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
-  .rnt-header > div:first-child { min-width: 0; }
-  .rnt-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; }
+  .rnt-wrap { max-width: 1280px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 2.5rem) 0; }
+  .rnt-header h1 { font-size: clamp(1.35rem, 5vw, 2rem); font-weight: 800; letter-spacing: -0.03em; margin: 0 0 2px; overflow-wrap: break-word; }
   .rnt-header p { color: var(--text-muted); font-size: 0.875rem; margin: 0; overflow-wrap: anywhere; }
   .btn-post { background: var(--gold); color: #0d0d0d; font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
   .btn-post:hover { background: var(--gold-light); color: #0d0d0d; transform: translateY(-1px); }
@@ -15,7 +13,10 @@
 
   /* Search + filter bar */
   .rnt-searchbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-  .rnt-input-wrap { flex: 1; min-width: 200px; position: relative; }
+  .rnt-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .rnt-header > div:first-child { min-width: 0; flex: 1 1 200px; }
+  .rnt-input-wrap { flex: 1; min-width: 0; position: relative; }
+  .rnt-trigger { min-width: 0; }
   .rnt-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
   .rnt-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px 9px 38px; font-size: 0.875rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
   .rnt-input:focus { border-color: var(--gold); }
@@ -30,7 +31,7 @@
     background: var(--bg-elevated); border: 1px solid var(--border);
     color: var(--text); border-radius: 8px; padding: 9px 14px;
     font-size: 0.875rem; font-family: var(--font-body);
-    cursor: pointer; white-space: nowrap; min-width: 170px;
+    cursor: pointer; white-space: nowrap;
     justify-content: space-between; user-select: none;
     transition: border-color 0.2s;
   }
@@ -90,31 +91,28 @@
   .page-btn:hover { border-color: var(--gold); color: var(--gold); }
   .page-btn.active { background: var(--gold); border-color: var(--gold); color: #0d0d0d; }
 
-  @media (max-width: 640px) {
-    .rnt-wrap { padding: 1.5rem 0 3rem; }
-    .rnt-header { align-items: stretch; margin-bottom: 1.25rem; }
+  @media (max-width: 767px) {
+    .rnt-wrap { padding-bottom: 3rem; }
+    .rnt-header { align-items: stretch; }
     .rnt-header > div:first-child { width: 100%; }
-    .rnt-header h1 { font-size: 1.5rem; }
-    .rnt-header > div:last-child,
-    .btn-post,
-    .btn-my,
-    .btn-search { width: 100%; justify-content: center; }
+    .rnt-header > div:last-child { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+    .btn-post, .btn-my, .btn-search { width: 100%; justify-content: center; }
     .rnt-searchbar { flex-direction: column; padding: 0.875rem; gap: 0.65rem; }
-    .rnt-input-wrap, .rnt-dropdown { width: 100%; min-width: 0; }
-    .rnt-trigger { width: 100%; min-width: 0; }
-    .rnt-menu { width: 100%; max-height: 56vh; overflow-y: auto; }
-    .rnt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
-    .rnt-card { border-radius: 12px; min-width: 0; }
-    .rnt-card-img,
-    .rnt-card-img-placeholder { height: 132px; }
-    .rnt-card-body { padding: 0.75rem; }
-    .rnt-card-footer { align-items: flex-start; flex-direction: column; gap: 5px; }
-    .rnt-price { font-size: 0.95rem; overflow-wrap: anywhere; }
-    .rnt-price small { display: block; margin-top: 1px; }
+    .rnt-input-wrap, .rnt-dropdown { width: 100%; }
+    .rnt-trigger { width: 100%; }
+    .rnt-grid { grid-template-columns: 1fr; gap: 0.875rem; }
+    .rnt-card-footer { flex-direction: column; align-items: flex-start; gap: 5px; }
     .rnt-meta { text-align: left; }
-    .rnt-card-location { align-items: flex-start; }
-    .pagination-wrap { flex-wrap: wrap; margin-top: 2rem; }
-    .page-btn { padding: 7px 11px; }
+    .pagination-wrap { flex-wrap: wrap; }
+  }
+
+  @media (min-width: 480px) and (max-width: 767px) {
+    .rnt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+    .rnt-card-img, .rnt-card-img-placeholder { height: 132px; }
+  }
+
+  @media (max-width: 479px) {
+    .rnt-header > div:last-child { flex-direction: column; }
   }
 
   @media (max-width: 360px) {

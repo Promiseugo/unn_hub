@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from django.db import IntegrityError
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 from .models import Review
 from .forms import ReviewForm
+from apps.trust.models import TrustTransaction
 
 
 ALLOWED_REVIEW_MODELS = {
@@ -53,10 +55,20 @@ def add_review(request, app_label, model_name, object_id):
     owner = (
         getattr(target_obj, 'seller', None)
         or getattr(target_obj, 'provider', None)
+        or getattr(target_obj, 'landlord', None)
         or getattr(target_obj, 'user', None)  # Profile
     )
     if owner == request.user:
         messages.error(request, "You can't review your own content.")
+        return redirect(redirect_url)
+
+    if not TrustTransaction.completed_for_review(
+        reviewer=request.user,
+        owner=owner,
+        content_type=ct,
+        object_id=str(object_id),
+    ):
+        messages.error(request, "Only completed marketplace interactions can be reviewed.")
         return redirect(redirect_url)
 
     # Block duplicate reviews
@@ -74,8 +86,12 @@ def add_review(request, app_label, model_name, object_id):
         review.reviewer = request.user
         review.content_type = ct
         review.object_id = str(object_id)
-        review.save()
-        messages.success(request, "Review submitted — thank you!")
+        try:
+            review.save()
+        except IntegrityError:
+            messages.warning(request, "You've already reviewed this.")
+        else:
+            messages.success(request, "Review submitted.")
     else:
         messages.error(request, "Please select a rating before submitting.")
 

@@ -30,6 +30,15 @@ class Thread(TimeStampedModel):
 
 
 class Message(TimeStampedModel):
+    STATUS_CLEAN = 'clean'
+    STATUS_FLAGGED = 'flagged'
+    STATUS_BLOCKED = 'blocked'
+    STATUS_CHOICES = [
+        (STATUS_CLEAN, 'Clean'),
+        (STATUS_FLAGGED, 'Flagged for review'),
+        (STATUS_BLOCKED, 'Blocked'),
+    ]
+
     thread = models.ForeignKey(
         Thread,
         on_delete=models.CASCADE,
@@ -41,6 +50,9 @@ class Message(TimeStampedModel):
         related_name='sent_messages',
     )
     body = models.TextField()
+    original_body = models.TextField(blank=True)
+    moderation_status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_CLEAN)
+    moderation_reasons = models.JSONField(default=list, blank=True)
     is_read = models.BooleanField(default=False)
 
     class Meta:
@@ -48,6 +60,7 @@ class Message(TimeStampedModel):
         indexes = [
             models.Index(fields=['thread', 'is_read', 'sender']),
             models.Index(fields=['sender', '-created_at']),
+            models.Index(fields=['moderation_status', '-created_at']),
         ]
 
     def __str__(self):

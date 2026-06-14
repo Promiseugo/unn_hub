@@ -1,5 +1,132 @@
-/* UNN Hub — global styles */
-body { background-color: #f8f9fa; }
-.card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(4, 151, 9, 0.1); }
-.listing-img { height: 200px; object-fit: cover; width: 100%; }
+/* UniTraX — global responsive utilities */
+
+/* ── Page shells (single horizontal padding source via .main-content) ── */
+.page-wrap,
+.detail-wrap,
+.inbox-wrap,
+.thread-wrap,
+.profile-wrap,
+.auth-wrap,
+.trust-page {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-block: clamp(1.5rem, 4vw, 2.5rem);
+  padding-inline: 0;
+  min-width: 0;
+}
+
+.detail-wrap { max-width: 1200px; }
+.inbox-wrap,
+.thread-wrap { max-width: 800px; }
+.profile-wrap { max-width: 1100px; }
+.trust-page { max-width: 720px; }
+
+/* ── Fluid type helpers ── */
+.text-hero { font-size: var(--fluid-hero); line-height: 1.05; }
+.text-section { font-size: var(--fluid-section); line-height: 1.15; }
+.text-subheading { font-size: var(--fluid-subheading); line-height: 1.2; }
+.text-body-fluid { font-size: var(--fluid-body); }
+.text-small-fluid { font-size: var(--fluid-small); }
+
+/* ── Media-safe images ── */
+.media-fluid {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.video-embed {
+  width: 100%;
+  max-height: min(340px, 50vh);
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+/* ── Button groups ── */
+.btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-stack > .btn,
+.btn-stack > a {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (min-width: 480px) {
+  .btn-stack--sm-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .btn-stack--sm-row > .btn,
+  .btn-stack--sm-row > a {
+    width: auto;
+    flex: 1 1 160px;
+    max-width: 100%;
+  }
+}
+
+/* ── Auth pages ── */
+.auth-wrap {
+  min-height: calc(100vh - var(--nav-height) - 80px);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: clamp(2rem, 6vw, 3rem);
+  padding-inline: 0;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* ── Trust / form pages ── */
+.trust-page h1 {
+  font-size: var(--fluid-section);
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+.trust-page .trust-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: clamp(1rem, 3vw, 1.25rem);
+}
+
+/* ── Messaging ── */
+@media (max-width: 767px) {
+  .thread-item .thread-arrow { display: none; }
+
+  .thread-name-row {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .thread-time { white-space: normal; }
+
+  .thread-header-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .thread-header-bar .thread-header-actions {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 479px) {
+  .inbox-header h1,
+  .page-header h2,
+  .mkt-header h1,
+  .rnt-header h1 {
+    font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+  }
+}

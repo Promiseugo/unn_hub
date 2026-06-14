@@ -7,10 +7,9 @@
   .thread-wrap {
     max-width: 760px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 3rem;
+    padding: clamp(1.5rem, 4vw, 2rem) 0 clamp(2rem, 6vw, 3rem);
   }
 
-  /* Header */
   .thread-header {
     display: flex;
     align-items: center;
@@ -18,7 +17,12 @@
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
   }
+
+  .thread-header-main { flex: 1 1 160px; min-width: 0; }
+
+  .thread-header-actions { margin-left: auto; }
 
   .btn-back {
     background: var(--bg-elevated);
@@ -54,8 +58,8 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 1.5rem;
-    max-height: 500px;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    max-height: min(500px, calc(100dvh - var(--nav-height) - 280px));
     overflow-y: auto;
     margin-bottom: 1rem;
     display: flex;
@@ -150,16 +154,23 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s;
+    min-height: 44px;
   }
 
   .btn-send:hover { background: var(--gold-light); transform: translateY(-1px); }
 
-  /* Empty state */
   .msg-empty {
     text-align: center;
     padding: 2rem;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: var(--fluid-small);
+  }
+
+  @media (max-width: 767px) {
+    .thread-header-actions { width: 100%; margin-left: 0 !important; }
+    .thread-header-actions .btn-back { width: 100%; text-align: center; }
+    .bubble { max-width: 88%; }
+    .thread-arrow { display: none; }
   }
 </style>
 {% endblock %}
@@ -170,11 +181,14 @@
   <!-- Header -->
   <div class="thread-header">
     <a href="{% url 'messaging:inbox' %}" class="btn-back">← Back</a>
-    <div>
+    <div class="thread-header-main">
       <p class="thread-with">{{ other.username|default:"Unknown" }}</p>
       {% if thread.subject %}
         <p class="thread-subject">{{ thread.subject }}</p>
       {% endif %}
+    </div>
+    <div class="thread-header-actions">
+      <a href="{% url 'trust:report-content' 'messaging' 'thread' thread.pk %}" class="btn-back">Report</a>
     </div>
   </div>
 

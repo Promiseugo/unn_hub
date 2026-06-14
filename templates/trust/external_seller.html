@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}External seller review — UniTraX{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;padding:3rem 0;">
+  <h1 style="font-size:1.7rem;">External seller review</h1>
+  <p style="color:var(--text-muted);">
+    MVP seller checks are manual. A moderator reviews your phone number, public proof, and reason for selling to the campus community.
+  </p>
+
+  {% if application %}
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0;">
+      <strong>Current status:</strong> {{ application.get_status_display }}
+      {% if application.review_note %}
+        <p style="color:var(--text-muted);margin:0.5rem 0 0;">{{ application.review_note }}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:0.9rem;margin:1rem 0;color:var(--text-muted);font-size:0.9rem;">
+      Do not upload sensitive government ID unless a moderator specifically asks for it. Public business or social proof is enough for MVP review.
+    </div>
+    <button class="btn-gold" type="submit">Submit for manual review</button>
+  </form>
+</div>
+{% endblock %}

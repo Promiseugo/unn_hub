@@ -8,7 +8,7 @@
 
   {# ── Review Form ─────────────────────────── #}
   {% if user.is_authenticated %}
-    {% if not user_has_reviewed %}
+    {% if not user_has_reviewed and user_can_review %}
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;">
         <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted-strong);margin-bottom:0.875rem;">Leave a Review</div>
         <form method="POST" action="{% url 'reviews:add-review' ct_app ct_model object_id %}">
@@ -34,9 +34,13 @@
           </button>
         </form>
       </div>
-    {% else %}
+    {% elif user_has_reviewed %}
       <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px 14px;margin-bottom:1.25rem;font-size:0.85rem;color:#4ade80;">
         ✓ You've already reviewed this
+      </div>
+    {% else %}
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:1.25rem;font-size:0.85rem;color:var(--text-muted-strong);">
+        Complete transaction confirmation before leaving a review.
       </div>
     {% endif %}
   {% else %}

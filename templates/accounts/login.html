@@ -7,12 +7,12 @@
 <style>
   .auth-wrap {
     min-height: calc(100vh - var(--nav-height) - 80px);
-    width: 100vw;
+    width: 100%;
     max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 1.5rem;
+    padding: clamp(2rem, 6vw, 3rem) 0;
     box-sizing: border-box;
     margin: 0;
   }
@@ -56,7 +56,7 @@
   /* Heading */
   .auth-heading {
     font-family: var(--font-head);
-    font-size: 1.6rem;
+    font-size: clamp(1.35rem, 5vw, 1.6rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     text-align: center;
@@ -255,16 +255,14 @@
   .auth-footer a:hover { color: var(--gold-light); }
 
   /* ── Responsive ─────────────────────────── */
-  @media (max-width: 480px) {
+  @media (max-width: 479px) {
     .auth-card { padding: 1.5rem 1.25rem; }
-    .auth-heading { font-size: 1.35rem; }
-    .auth-wrap { padding: 2rem 1rem; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;">
+<div class="auth-wrap">
   <div class="auth-box">
 
     <!-- Logo -->

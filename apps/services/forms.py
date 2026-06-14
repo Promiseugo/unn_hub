@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import ServiceOffer
 from apps.core.validators import validate_positive_price, validate_video_size, validate_video_type
+from apps.trust.utils import scan_text_for_policy
 
 
 class ServiceOfferForm(forms.ModelForm):
@@ -23,6 +24,17 @@ class ServiceOfferForm(forms.ModelForm):
         if price is not None:
             validate_positive_price(price)
         return price
+
+    def clean(self):
+        cleaned = super().clean()
+        title = cleaned.get('title', '')
+        description = cleaned.get('description', '')
+        if scan_text_for_policy(f'{title} {description}'):
+            raise ValidationError(
+                "This service appears to include prohibited or unsafe content. "
+                "Please review the marketplace rules before posting."
+            )
+        return cleaned
 
 
 class VideoValidator:

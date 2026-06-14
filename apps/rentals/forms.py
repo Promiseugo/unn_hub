@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import RentalListing, RentalInquiry
 from apps.core.validators import validate_positive_price, validate_image_size, validate_image_type, validate_video_size, validate_video_type
+from apps.trust.utils import scan_text_for_policy
 
 
 class RentalListingForm(forms.ModelForm):
@@ -58,6 +59,18 @@ class RentalListingForm(forms.ModelForm):
         """Convert list of selected amenities to comma-separated string for storage."""
         amenities = self.cleaned_data.get('amenities', [])
         return ','.join(amenities)
+
+    def clean(self):
+        cleaned = super().clean()
+        title = cleaned.get('title', '')
+        description = cleaned.get('description', '')
+        address = cleaned.get('address', '')
+        if scan_text_for_policy(f'{title} {description} {address}'):
+            raise ValidationError(
+                "This rental post appears to include prohibited or unsafe content. "
+                "Please review the marketplace rules before posting."
+            )
+        return cleaned
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -47,6 +47,8 @@ def _recalculate_profile(profile):
     profile.avg_rating    = round(agg['avg'] or 0, 2)
     profile.total_reviews = all_reviews.count()
     profile.save(update_fields=['avg_rating', 'total_reviews'])
+    from apps.trust.scoring import update_trust_score
+    update_trust_score(profile.user, reason='review_aggregate_changed')
 
 
 def _get_profile_from_review(instance):

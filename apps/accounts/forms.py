@@ -1,29 +1,44 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Profile
+from .models import Profile
+from apps.trust.utils import validate_university_email, is_campus_email
+
+User = get_user_model()
 
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=50, required=True)
     last_name = forms.CharField(max_length=50, required=True)
+    matric_number = forms.CharField(
+        max_length=20,
+        required=False,
+        label="Matric Number (optional)",
+        help_text="e.g. 2019/234567. Speeds up your student verification.",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. 2019/234567'}),
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name',
-                  'password1', 'password2')
+                  'matric_number', 'password1', 'password2')
 
     def clean_email(self):
-        # Normalize to lowercase so Promise@gmail.com == promise@gmail.com
         email = self.cleaned_data.get('email', '').lower().strip()
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("An account with this email already exists.")
+        ok, error = validate_university_email(email)
+        if not ok:
+            raise forms.ValidationError(error)
         return email
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        # Always store email in lowercase
         user.email = self.cleaned_data['email'].lower().strip()
+        matric = self.cleaned_data.get('matric_number', '').strip()
+        if matric:
+            user.matric_number = matric.upper()
         if commit:
             user.save()
         return user
@@ -52,6 +67,18 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class UserUpdateForm(forms.ModelForm):
+    matric_number = forms.CharField(
+        max_length=20,
+        required=False,
+        label="Matric Number",
+        help_text="e.g. 2019/234567. Used for manual student verification.",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. 2019/234567'}),
+    )
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'phone')
+        fields = ('first_name', 'last_name', 'phone', 'matric_number')
+
+    def clean_matric_number(self):
+        val = self.cleaned_data.get('matric_number', '').strip()
+        return val.upper() if val else ''

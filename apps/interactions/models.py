@@ -75,3 +75,45 @@ class Comment(TimeStampedModel):
     @property
     def is_reply(self):
         return self.parent is not None
+
+
+class ContentView(TimeStampedModel):
+    """
+    Persistent unique view ledger for marketplace objects.
+    Authenticated users are counted once per object across sessions.
+    Anonymous visitors are counted once per browser session.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='content_views',
+    )
+    session_key = models.CharField(max_length=40, null=True, blank=True, db_index=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.CharField(max_length=36)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content_type', 'object_id', 'user'],
+                condition=models.Q(user__isnull=False),
+                name='unique_user_content_view',
+            ),
+            models.UniqueConstraint(
+                fields=['content_type', 'object_id', 'session_key'],
+                condition=models.Q(user__isnull=True, session_key__isnull=False),
+                name='unique_session_content_view',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['content_type', 'object_id', 'created_at']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        viewer = self.user.username if self.user_id else self.session_key
+        return f"View by {viewer}"

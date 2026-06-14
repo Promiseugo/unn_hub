@@ -106,6 +106,7 @@
         <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
       </div>
 
+      {% if enable_video_uploads %}
       {# Video upload component #}
       {# ── Video Upload ──────────────────────────── #}
       <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
@@ -152,6 +153,7 @@
         })();
         </script>
       </div>
+      {% endif %}
 
 
       <div style="display:flex;gap:0.875rem;flex-wrap:wrap;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
@@ -175,7 +177,7 @@
     <ul class="tips-list">
       <li>Include the exact street — students search by area</li>
       <li>State clearly what the price covers (water, light, etc.)</li>
-      <li>Upload a walkthrough video — builds trust immediately</li>
+      {% if enable_video_uploads %}<li>Upload a walkthrough video — builds trust immediately</li>{% endif %}
       <li>Mention proximity to campus gates and markets</li>
       <li>Respond to inquiries within 24 hours</li>
     </ul>

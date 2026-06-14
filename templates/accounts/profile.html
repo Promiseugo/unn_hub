@@ -7,19 +7,19 @@
   .profile-wrap {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 2.5rem 2rem 4rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem) 0 clamp(2rem, 6vw, 4rem);
   }
 
-  /* ── Profile layout ──────────────────── */
   .profile-grid {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 1.75rem;
+    grid-template-columns: minmax(0, 280px) 1fr;
+    gap: clamp(1rem, 3vw, 1.75rem);
     align-items: start;
   }
 
   @media (max-width: 860px) {
     .profile-grid { grid-template-columns: 1fr; }
+    .profile-sidebar { position: static; top: auto; }
   }
 
   /* ── Sidebar ─────────────────────────── */
@@ -119,6 +119,21 @@
     padding: 4px 10px;
     border-radius: 6px;
     font-family: var(--font-head);
+  }
+
+  .trust-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--gold);
+    font-family: var(--font-head);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
   }
 
   /* Sidebar action buttons */
@@ -334,17 +349,13 @@
     padding: 1rem 0;
   }
 
-  @media (max-width: 640px) {
-    .profile-wrap { padding: 1.5rem 0 3rem; }
-    .profile-sidebar { position: static; }
+  .mini-title { overflow-wrap: anywhere; min-width: 0; }
+
+  @media (max-width: 767px) {
     .profile-card,
-    .content-section { border-radius: 12px; padding: 1rem; }
+    .profile-section { border-radius: 12px; padding: 1rem; }
+    .review-top { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
     .mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
-    .mini-img,
-    .mini-img-placeholder { height: 100px; }
-    .mini-title,
-    .mini-price { overflow-wrap: anywhere; }
-    .service-mini { padding: 0.875rem; }
   }
 
   @media (max-width: 360px) {
@@ -378,6 +389,7 @@
 
         <div class="profile-name">{{ profile_user.profile.display_name }}</div>
         <div class="profile-handle">@{{ profile_user.username }}</div>
+        <div class="trust-score">Trust score {{ profile_user.profile.trust_score }}/100</div>
 
         {% if profile_user.profile.avg_rating > 0 %}
           <div class="profile-rating">
@@ -398,6 +410,9 @@
         {% endif %}
 
         <div class="profile-tags">
+          {% for badge_key,badge_label in profile_user.profile.badges %}
+            <span class="profile-tag">{{ badge_label }}</span>
+          {% endfor %}
           {% if profile_user.profile.department %}
             <span class="profile-tag">🏫 {{ profile_user.profile.department }}</span>
           {% endif %}
@@ -408,6 +423,10 @@
 
         {% if user == profile_user %}
           <a href="{% url 'accounts:profile-edit' %}" class="btn-sidebar">✏ Edit Profile</a>
+          <a href="{% url 'trust:student-id' %}" class="btn-sidebar-ghost">Verify Student ID</a>
+          {% if user.trust_tier == 'unverified' or user.trust_tier == 'verified_external' or user.trust_tier == 'verified_business' %}
+            <a href="{% url 'trust:external-seller' %}" class="btn-sidebar-ghost">External Seller Review</a>
+          {% endif %}
         {% else %}
           <a href="{% url 'messaging:new-thread' profile_user.username %}" class="btn-sidebar">
             💬 Send Message

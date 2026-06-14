@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Campus safety guidelines — UniTraX{% endblock %}
+
+{% block content %}
+<div style="max-width:720px;margin:0 auto;padding:3rem 0;">
+  <h1 style="font-size:1.7rem;">Campus safety first</h1>
+  <p style="color:var(--text-muted);">Use UniTraX messaging, meet in public campus locations, and never pay before inspecting an item.</p>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin:1.25rem 0;">
+    <h2 style="font-size:1rem;">Safer meetup locations</h2>
+    <ul style="color:var(--text-muted);margin-bottom:0;">
+      <li>Library entrance or reading-area lobby</li>
+      <li>Student union/public administrative area</li>
+      <li>Faculty common areas during daytime</li>
+      <li>Campus security post or other supervised public spot</li>
+    </ul>
+  </div>
+  <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;">
+    <strong>Scam prevention:</strong>
+    <span style="color:var(--text-muted);">Avoid off-platform payments, urgent pressure, suspiciously cheap listings, and requests to move to WhatsApp or email.</span>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <label style="display:flex;gap:10px;align-items:flex-start;color:var(--text);">
+      {{ form.acknowledge }}
+      <span>{{ form.acknowledge.label }}</span>
+    </label>
+    <button class="btn-gold mt-3" type="submit">I understand</button>
+  </form>
+</div>
+{% endblock %}

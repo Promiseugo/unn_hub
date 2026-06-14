@@ -19,9 +19,33 @@ class User(AbstractUser):
     We use email as the unique identifier for login
     instead of the default username.
     """
+    TIER_UNVERIFIED = 'unverified'
+    TIER_STUDENT = 'verified_student'
+    TIER_STAFF = 'verified_staff'
+    TIER_EXTERNAL = 'verified_external'
+    TIER_BUSINESS = 'verified_business'
+    TIER_CHOICES = [
+        (TIER_UNVERIFIED, 'Unverified'),
+        (TIER_STUDENT, 'Verified student'),
+        (TIER_STAFF, 'Verified staff'),
+        (TIER_EXTERNAL, 'Verified external'),
+        (TIER_BUSINESS, 'Verified business'),
+    ]
+
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, blank=True)
+    matric_number = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Optional UNN matric number (e.g. 2019/234567). Used for manual student verification.",
+    )
+    trust_tier = models.CharField(max_length=32, choices=TIER_CHOICES, default=TIER_UNVERIFIED)
+    phone_verified = models.BooleanField(default=False)
+    external_seller_approved = models.BooleanField(default=False)
+    identity_risk_score = models.PositiveSmallIntegerField(default=0)
     is_verified = models.BooleanField(default=False)
+    is_suspended = models.BooleanField(default=False)
+    suspension_reason = models.TextField(blank=True)
 
     # Switch login field from username → email
     USERNAME_FIELD = 'email'
@@ -30,6 +54,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        if self.is_verified and self.trust_tier == self.TIER_UNVERIFIED:
+            self.trust_tier = self.TIER_STUDENT
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'trust_tier'}
+        super().save(*args, **kwargs)
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.email
@@ -66,6 +98,12 @@ class Profile(TimeStampedModel):
         default=0.00,
     )
     total_reviews = models.PositiveIntegerField(default=0)
+    student_id_verified = models.BooleanField(default=False)
+    successful_transactions = models.PositiveIntegerField(default=0)
+    response_rate = models.PositiveSmallIntegerField(default=0)
+    trust_score = models.PositiveSmallIntegerField(default=20)
+    trusted_seller = models.BooleanField(default=False)
+    top_rated_seller = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Profile of {self.user.email}"
@@ -73,3 +111,14 @@ class Profile(TimeStampedModel):
     @property
     def display_name(self):
         return self.user.get_full_name() or self.user.username
+
+    @property
+    def badges(self):
+        badges = []
+        if self.user.is_verified:
+            badges.append(('verified-student', 'Verified Student'))
+        if self.trusted_seller:
+            badges.append(('trusted-seller', 'Trusted Seller'))
+        if self.top_rated_seller:
+            badges.append(('top-rated-seller', 'Top Rated Seller'))
+        return badges

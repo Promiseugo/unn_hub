@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Student ID verification — UniTraX{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:0 auto;padding:3rem 0;">
+  <h1 style="font-size:1.6rem;">Student ID verification</h1>
+  <p style="color:var(--text-muted);">Optional, but it can improve your trust badge and seller reputation.</p>
+  {% if verification %}
+    <p class="alert alert-info">Current status: {{ verification.get_status_display }}</p>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn-gold" type="submit">Submit for review</button>
+  </form>
+</div>
+{% endblock %}

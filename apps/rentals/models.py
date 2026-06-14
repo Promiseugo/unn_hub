@@ -6,6 +6,16 @@ from apps.core.models import TimeStampedModel
 
 
 class RentalListing(TimeStampedModel):
+    APPROVAL_PENDING = 'pending'
+    APPROVAL_APPROVED = 'approved'
+    APPROVAL_REJECTED = 'rejected'
+    APPROVAL_FLAGGED = 'flagged'
+    APPROVAL_CHOICES = [
+        (APPROVAL_PENDING, 'Pending review'),
+        (APPROVAL_APPROVED, 'Approved'),
+        (APPROVAL_REJECTED, 'Rejected'),
+        (APPROVAL_FLAGGED, 'Flagged'),
+    ]
 
     LISTING_TYPE_CHOICES = [
         ('offering', 'Room / Space Available'),
@@ -105,11 +115,32 @@ class RentalListing(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     is_taken = models.BooleanField(default=False)
     view_count = models.PositiveIntegerField(default=0)
+    approval_status = models.CharField(
+        max_length=16,
+        choices=APPROVAL_CHOICES,
+        default=APPROVAL_APPROVED,
+    )
+    risk_score = models.PositiveSmallIntegerField(default=0)
+    risk_reasons = models.JSONField(default=list, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_rentals',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Rental Listing'
         verbose_name_plural = 'Rental Listings'
+        indexes = [
+            models.Index(fields=['is_active', 'is_taken', '-created_at']),
+            models.Index(fields=['approval_status', 'risk_score', '-created_at']),
+            models.Index(fields=['deleted_at']),
+        ]
 
     def __str__(self):
         return f"{self.get_rental_type_display()} — {self.address}"

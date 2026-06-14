@@ -6,13 +6,14 @@ Views for the accounts app.
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.contrib.sessions.models import Session
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -22,10 +23,13 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 from .forms import RegisterForm, LoginForm, ProfileUpdateForm, UserUpdateForm
-from .models import User, Profile
+from .models import Profile
+from apps.trust.models import EmailOTP, UserSessionSecurityEvent
+from apps.trust.utils import get_client_ip, get_user_agent, log_audit
 
 # Logger for security events
 logger = logging.getLogger('apps.accounts')
+User = get_user_model()
 
 
 def _build_site_context(request):
@@ -82,6 +86,71 @@ def _send_verification_email(request, user):
     )
 
 
+def _send_verification_otp(request, user):
+    otp = EmailOTP.issue(user, request_ip=get_client_ip(request), ttl_minutes=getattr(settings, 'EMAIL_OTP_TTL_MINUTES', 10))
+    _safe_send_user_email(
+        request=request,
+        user=user,
+        subject_template='accounts/email_verification_subject.txt',
+        body_template='accounts/email_verification.txt',
+        html_template='accounts/email_verification.html',
+        extra_context={'otp_code': otp.plain_code},
+    )
+
+
+def _active_sessions_for_user(user):
+    active = []
+    for session in Session.objects.filter(expire_date__gte=timezone.now()):
+        data = session.get_decoded()
+        if str(data.get('_auth_user_id')) == str(user.pk):
+            active.append(session)
+    return active
+
+
+def _record_login_security(request, user):
+    ip_address = get_client_ip(request) or None
+    user_agent = get_user_agent(request)
+    session_key = request.session.session_key or ''
+
+    seen_ip = UserSessionSecurityEvent.objects.filter(
+        user=user,
+        ip_address=ip_address,
+    ).exists() if ip_address else True
+    seen_agent = UserSessionSecurityEvent.objects.filter(
+        user=user,
+        user_agent=user_agent,
+    ).exists() if user_agent else True
+
+    event_type = UserSessionSecurityEvent.EVENT_LOGIN
+    if not seen_agent:
+        event_type = UserSessionSecurityEvent.EVENT_NEW_DEVICE
+    elif not seen_ip:
+        event_type = UserSessionSecurityEvent.EVENT_NEW_IP
+
+    UserSessionSecurityEvent.objects.create(
+        user=user,
+        event_type=event_type,
+        session_key=session_key,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    limit = getattr(settings, 'CONCURRENT_SESSION_LIMIT', 5)
+    if limit and limit > 0:
+        sessions = sorted(_active_sessions_for_user(user), key=lambda item: item.expire_date, reverse=True)
+        for stale_session in sessions[limit:]:
+            stale_session.delete()
+        if len(sessions) > limit:
+            UserSessionSecurityEvent.objects.create(
+                user=user,
+                event_type=UserSessionSecurityEvent.EVENT_CONCURRENT_LIMIT,
+                session_key=session_key,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                metadata={'removed_sessions': len(sessions) - limit},
+            )
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
@@ -101,9 +170,10 @@ def register_view(request):
                 body_template='accounts/welcome_email.txt',
                 html_template='accounts/welcome_email.html',
             )
-            _send_verification_email(request, user)
+            _send_verification_otp(request, user)
+            log_audit(request, 'user_registered', user)
             messages.success(request, f"Welcome to UNN Hub, {user.username}!")
-            return redirect(_get_safe_next_url(request))
+            return redirect('trust:verify-email')
     else:
         form = RegisterForm()
 
@@ -123,6 +193,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            _record_login_security(request, user)
             if getattr(settings, 'ACCOUNT_LOGIN_ALERT_EMAILS', False):
                 _safe_send_user_email(
                     request=request,
@@ -171,7 +242,13 @@ def verify_email_view(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         if not user.is_verified:
             user.is_verified = True
-            user.save(update_fields=['is_verified'])
+            if getattr(user, 'trust_tier', 'unverified') == 'unverified':
+                user.trust_tier = 'verified_student'
+                user.save(update_fields=['is_verified', 'trust_tier'])
+            else:
+                user.save(update_fields=['is_verified'])
+            from apps.trust.scoring import update_trust_score
+            update_trust_score(user, reason='email_verified', actor=user, source=user)
         messages.success(request, "Your email has been verified.")
     else:
         messages.error(request, "That verification link is invalid or has expired.")
@@ -180,15 +257,21 @@ def verify_email_view(request, uidb64, token):
 
 def profile_view(request, username):
     from apps.reviews.models import Review
+    from apps.trust.scoring import update_trust_score
 
     profile_user = get_object_or_404(User, username=username)
+    update_trust_score(profile_user)
     listings = profile_user.listings.filter(
         is_active=True,
         is_sold=False,
         expires_at__gt=timezone.now(),
+        approval_status='approved',
+        deleted_at__isnull=True,
     ).order_by('-created_at')[:6]
     services = profile_user.services.filter(
-        is_active=True
+        is_active=True,
+        approval_status='approved',
+        deleted_at__isnull=True,
     ).order_by('-created_at')[:6]
 
     ct = ContentType.objects.get_for_model(Profile)
@@ -249,7 +332,15 @@ class PasswordChangeDoneView(auth_views.PasswordChangeDoneView):
 
 @method_decorator(ratelimit(key='ip', rate='5/h', method='POST', block=True), name='dispatch')
 class PasswordResetNotifyView(auth_views.PasswordResetView):
-    pass
+    """
+    Password reset request endpoint with project-specific defaults.
+    URL-level kwargs can still override these values where needed.
+    """
+    template_name = 'accounts/password_reset.html'
+    email_template_name = 'accounts/password_reset_email.txt'
+    html_email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('accounts:password_reset_done')
 
 
 class PasswordResetConfirmNotifyView(auth_views.PasswordResetConfirmView):

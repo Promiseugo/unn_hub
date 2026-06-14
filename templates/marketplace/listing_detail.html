@@ -7,16 +7,15 @@
   .detail-wrap {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 2.5rem 2.5rem 5rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem) 0 clamp(2.5rem, 6vw, 5rem);
   }
 
-  /* ── Breadcrumb ───────────────────────── */
   .breadcrumb-row {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 2rem;
-    font-size: 0.8rem;
+    font-size: var(--fluid-small);
     color: var(--text-muted);
     flex-wrap: wrap;
   }
@@ -24,19 +23,18 @@
   .breadcrumb-row a { color: var(--text-muted); transition: color 0.2s; }
   .breadcrumb-row a:hover { color: var(--gold); }
   .breadcrumb-row .sep { opacity: 0.4; }
-  .breadcrumb-row .current { color: var(--text); }
+  .breadcrumb-row .current { color: var(--text); overflow-wrap: anywhere; }
 
-  /* ── Layout ───────────────────────────── */
   .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 3rem;
+    grid-template-columns: 1fr minmax(0, 420px);
+    gap: clamp(1.5rem, 4vw, 3rem);
     align-items: start;
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1023px) {
     .detail-grid { grid-template-columns: 1fr; }
-    .detail-wrap { padding: 1.5rem 1.25rem 4rem; }
+    .detail-panel { position: static; top: auto; }
   }
 
   /* ── Right Panel ──────────────────────── */
@@ -571,6 +569,10 @@
             <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px 14px;font-size:0.85rem;color:#4ade80;margin-bottom:1rem;">
               ✓ You've already reviewed this listing
             </div>
+          {% elif not user_can_review %}
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">
+              Complete transaction confirmation before leaving a review.
+            </div>
           {% else %}
             <div class="review-form-card">
               <div class="review-form-label">Leave a Review</div>
@@ -682,6 +684,7 @@
             Login to Contact Seller
           </a>
         {% endif %}
+        {% include 'trust/transaction_panel.html' %}
       </div>
 
       <!-- Seller card -->

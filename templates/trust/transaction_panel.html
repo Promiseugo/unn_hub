@@ -1,0 +1,74 @@
+{% if user.is_authenticated %}
+  <div style="margin-top:0.75rem;border:1px solid var(--border);border-radius:10px;padding:0.875rem;background:var(--bg-elevated);">
+    <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.625rem;">
+      Transaction confirmation
+    </div>
+
+    {% if user == transaction_owner %}
+      {% if trust_transactions %}
+        {% for transaction in trust_transactions %}
+          <div style="border-top:1px solid var(--border);padding-top:0.625rem;margin-top:0.625rem;">
+            <div style="font-size:0.85rem;color:var(--text);margin-bottom:0.5rem;">
+              {{ transaction.buyer.username }}:
+              <strong>{{ transaction.get_status_display }}</strong>
+            </div>
+            {% if transaction.status == 'pending' %}
+              <div style="display:grid;gap:0.5rem;">
+                {% if transaction.seller_confirmed_at %}
+                  <div style="font-size:0.78rem;color:#4ade80;">You confirmed. Waiting for buyer.</div>
+                {% else %}
+                  <form method="POST" action="{% url 'trust:confirm-transaction' transaction.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success w-100">Confirm completed</button>
+                  </form>
+                {% endif %}
+                <form method="POST" action="{% url 'trust:dispute-transaction' transaction.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">Dispute</button>
+                </form>
+              </div>
+            {% elif transaction.status == 'completed' %}
+              <div style="font-size:0.78rem;color:#4ade80;">Completed. Buyer can review.</div>
+            {% elif transaction.status == 'disputed' %}
+              <div style="font-size:0.78rem;color:#fbbf24;">Disputed. Moderator review needed.</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="font-size:0.82rem;color:var(--text-muted);">No transaction confirmations yet.</div>
+      {% endif %}
+    {% else %}
+      {% if trust_transactions %}
+        {% for transaction in trust_transactions %}
+          {% if transaction.status == 'pending' %}
+            <div style="font-size:0.85rem;color:var(--text);margin-bottom:0.625rem;">
+              Pending confirmation.
+              {% if transaction.buyer_confirmed_at %}You confirmed.{% else %}Confirm after the deal is complete.{% endif %}
+            </div>
+            <div style="display:grid;gap:0.5rem;">
+              {% if not transaction.buyer_confirmed_at %}
+                <form method="POST" action="{% url 'trust:confirm-transaction' transaction.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success w-100">Confirm completed</button>
+                </form>
+              {% endif %}
+              <form method="POST" action="{% url 'trust:dispute-transaction' transaction.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Dispute</button>
+              </form>
+            </div>
+          {% elif transaction.status == 'completed' %}
+            <div style="font-size:0.85rem;color:#4ade80;">Completed. You can leave a review.</div>
+          {% elif transaction.status == 'disputed' %}
+            <div style="font-size:0.85rem;color:#fbbf24;">Disputed. Moderator review needed.</div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <form method="POST" action="{% url 'trust:request-transaction' transaction_app_label transaction_model_name transaction_object_id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-success w-100">Request transaction confirmation</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}

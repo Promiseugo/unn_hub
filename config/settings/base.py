@@ -27,6 +27,20 @@ SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='support@unitrax.com')
 ACCOUNT_LOGIN_ALERT_EMAILS = config('ACCOUNT_LOGIN_ALERT_EMAILS', default=False, cast=bool)
 IMAGE_UPLOAD_MAX_DIMENSION = config('IMAGE_UPLOAD_MAX_DIMENSION', default=1600, cast=int)
 IMAGE_UPLOAD_QUALITY = config('IMAGE_UPLOAD_QUALITY', default=82, cast=int)
+OFFICIAL_UNIVERSITY_EMAIL_DOMAINS = [
+    item.strip().lower()
+    for item in config('OFFICIAL_UNIVERSITY_EMAIL_DOMAINS', default='unn.edu.ng,student.unn.edu.ng').split(',')
+    if item.strip()
+]
+REQUIRE_UNIVERSITY_EMAIL_VERIFICATION = config('REQUIRE_UNIVERSITY_EMAIL_VERIFICATION', default=True, cast=bool)
+EMAIL_OTP_TTL_MINUTES = config('EMAIL_OTP_TTL_MINUTES', default=10, cast=int)
+
+# Password reset link expiry — Django default is 3 days (259200s), which is too long.
+# Tightened to 1 hour per security best practice.
+PASSWORD_RESET_TIMEOUT = config('PASSWORD_RESET_TIMEOUT', default=3600, cast=int)  # 1 hour
+SAFETY_ACK_VERSION = config('SAFETY_ACK_VERSION', default='2026-05')
+MVP_MANUAL_VERIFICATION_ONLY = config('MVP_MANUAL_VERIFICATION_ONLY', default=True, cast=bool)
+ENABLE_VIDEO_UPLOADS = config('ENABLE_VIDEO_UPLOADS', default=False, cast=bool)
 
 SITE_ID = config('SITE_ID', default=1, cast=int)
 
@@ -40,8 +54,12 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # cloudinary_storage MUST come before django.contrib.staticfiles
+    'cloudinary_storage',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Enables Sites framework for social auth
+    'cloudinary',
+    'django.contrib.sites',      # Required by allauth
+    'django.contrib.sitemaps',   # sitemap.xml
 ]
 
 THIRD_PARTY_APPS = [
@@ -64,6 +82,7 @@ LOCAL_APPS = [
     'apps.reviews',
     'apps.rentals',
     'apps.interactions',
+    'apps.trust',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -84,6 +103,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'axes.middleware.AxesMiddleware',             # Brute force -- after auth
     'django.contrib.messages.middleware.MessageMiddleware',
+    'apps.trust.middleware.TrustSafetyMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',  # Required for django-allauth
 ]
@@ -168,6 +188,7 @@ SESSION_COOKIE_HTTPONLY = True      # JS cannot access session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'    # Protects against CSRF via cross-site requests
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 1209600        # 2 weeks in seconds
+CONCURRENT_SESSION_LIMIT = config('CONCURRENT_SESSION_LIMIT', default=5, cast=int)
 
 
 # ---------------------------------------------
@@ -218,7 +239,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Django 4.2+ replaced DEFAULT_FILE_STORAGE and STATICFILES_STORAGE
+# with a unified STORAGES dict. DEFAULT_FILE_STORAGE is fully removed in Django 5.
+# Always configure storage here; override 'default' backend in settings that use Cloudinary/S3.
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # ---------------------------------------------
 # MEDIA FILES
@@ -238,12 +269,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ---------------------------------------------
 # Maximum upload size enforced by Django before hitting view logic
 # 55MB = 50MB video + 5MB overhead for form data
-DATA_UPLOAD_MAX_MEMORY_SIZE = 55 * 1024 * 1024   # 55MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 55 * 1024 * 1024   # 55MB
-
-# Files above 2.5MB are written to disk instead of memory
-# Prevents memory exhaustion attacks with large uploads
-FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB in-memory threshold
+DATA_UPLOAD_MAX_MEMORY_SIZE = 55 * 1024 * 1024   # 55MB total form data
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440            # 2.5MB in-memory threshold (larger = temp disk)
 
 # Only allow these handlers -- prevents bypass via alternative upload mechanisms
 FILE_UPLOAD_HANDLERS = [
@@ -262,7 +289,7 @@ CSRF_FAILURE_VIEW = 'apps.core.views.csrf_failure'
 # AUTH REDIRECTS
 # ---------------------------------------------
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'landing'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
 
@@ -290,7 +317,11 @@ MESSAGE_TAGS = {
 # Logs WARNING+ to console always.
 # Logs security events (failed logins etc.)
 # to a dedicated security.log file.
+# Auto-creates logs/ directory if missing (e.g. fresh server deploy).
 # ---------------------------------------------
+import os as _os
+_os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -353,7 +384,6 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_UNIQUE_EMAIL = True
-LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

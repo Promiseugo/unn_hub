@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify your email — UniTraX{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:0 auto;padding:3rem 0;">
+  <h1 style="font-size:1.6rem;">Verify your email</h1>
+  <p style="color:var(--text-muted);">Enter the 6-digit code sent to <strong>{{ request.user.email }}</strong>.</p>
+  <form method="post" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {{ form.code }}
+    {% if form.code.errors %}<div class="text-danger mt-2">{{ form.code.errors }}</div>{% endif %}
+    <button class="btn-gold mt-3 w-100" type="submit">Verify Email</button>
+  </form>
+  <form method="post" action="{% url 'trust:resend-email-otp' %}" style="margin-top:1rem;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <button class="btn-ghost w-100" type="submit">Send a new code</button>
+  </form>
+
+  {% if request.user.matric_number %}
+  <p style="color:var(--text-muted);font-size:0.8rem;margin-top:1.5rem;text-align:center;">
+    Matric number <strong>{{ request.user.matric_number }}</strong> saved — a moderator will verify your student status shortly.
+  </p>
+  {% else %}
+  <p style="color:var(--text-muted);font-size:0.8rem;margin-top:1.5rem;text-align:center;">
+    Are you a UNN student? Add your matric number in
+    <a href="{% url 'accounts:profile-edit' %}" style="color:var(--gold);">your profile</a>
+    to get the Verified Student badge faster.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}
