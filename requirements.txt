@@ -1,4 +1,36 @@
-# Root requirements.txt — required for Railway's Railpack build system
-# to detect this as a Python project. The actual dependencies are
-# organized in requirements/ — this just points to the production set.
--r requirements/production.txt
+# Root requirements.txt — flattened for Railway's Railpack build system.
+#
+# Railpack copies ONLY this file into an early build layer (for Docker
+# caching) before the rest of the source tree exists, so `-r requirements/
+# production.txt` fails with "No such file or directory". This file must
+# be fully self-contained.
+#
+# This is the full production dependency set (base + production extras).
+# requirements/base.txt and requirements/production.txt remain the source
+# of truth for local dev — keep both in sync if you change either.
+
+Django==5.2.15
+Pillow==12.2.0
+python-decouple==3.8
+django-crispy-forms==2.1
+crispy-bootstrap5==2024.2
+django-filter==24.2
+whitenoise==6.6.0
+argon2-cffi==23.1.0
+django-axes==6.4.0
+django-ratelimit==4.1.0
+django-allauth==65.16.1
+idna==3.15
+requests==2.33.0
+PyJWT==2.13.0
+cryptography==46.0.7
+dj-database-url==3.1.2
+psycopg[binary]==3.3.4
+
+# production extras
+gunicorn==22.0.0
+django-storages==1.14.3
+boto3==1.34.100
+sentry-sdk==2.8.0
+cloudinary==1.40.0
+django-cloudinary-storage==0.3.0
