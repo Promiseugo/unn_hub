@@ -84,3 +84,6 @@ if USE_CLOUDINARY:
 # collectstatic to have been run (Manifest backend crashes tests
 # with "Missing staticfiles manifest entry" otherwise)
 STORAGES['staticfiles']['BACKEND'] = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# Keep legacy alias in sync (see base.py) — django-cloudinary-storage
+# checks settings.STATICFILES_STORAGE directly during collectstatic.
+STATICFILES_STORAGE = STORAGES['staticfiles']['BACKEND']

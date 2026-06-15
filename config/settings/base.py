@@ -54,12 +54,18 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    # cloudinary_storage MUST come before django.contrib.staticfiles
-    'cloudinary_storage',
     'django.contrib.staticfiles',
-    'cloudinary',
     'django.contrib.sites',      # Required by allauth
     'django.contrib.sitemaps',   # sitemap.xml
+    # cloudinary_storage AFTER staticfiles: with the STORAGES dict (Django
+    # 4.2+), media storage backend is just a class path string and doesn't
+    # need app-load-order. Placing it after staticfiles ensures Django's
+    # default collectstatic (which copies unhashed files for WhiteNoise's
+    # manifest post-processing) wins over cloudinary_storage's override
+    # (which skips copying unhashed files unless STATICFILES_STORAGE is
+    # Cloudinary's static backend — that broke admin/css/widgets.css).
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 THIRD_PARTY_APPS = [
@@ -250,6 +256,13 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
+
+# Legacy alias kept in sync with STORAGES['staticfiles']['BACKEND'].
+# django-cloudinary-storage's collectstatic command checks
+# settings.STATICFILES_STORAGE directly (pre-Django-4.2 name) — without
+# this, Django 5 raises AttributeError since the attribute no longer
+# exists by default. Keeping both in sync avoids any conflict.
+STATICFILES_STORAGE = STORAGES['staticfiles']['BACKEND']
 
 # ---------------------------------------------
 # MEDIA FILES
