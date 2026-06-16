@@ -1,8 +1,6 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% block title %}UniTraX — The Campus Marketplace{% endblock %}
- 
 {% block main_class %}no-pad{% endblock %}
- 
 {% block extra_css %}
 <style>
   /* ── Hero ───────────────────────────────────── */
@@ -525,9 +523,7 @@
     }
   }
 </style>
-{% endblock %}
- 
-{% block content %} {% load static %}
+{% endblock %} {% block content %} {% load static %}
 
 <!-- ═══════════════════════════════════════
      HERO
@@ -784,9 +780,7 @@
     >
   </div>
 </section>
-{% endif %} {% endblock %}
- 
-{% block extra_js %} {% load static %}
+{% endif %} {% endblock %} {% block extra_js %} {% load static %}
 
 <script>
   /* ── Feature toggle ──────────────────────────────────
@@ -819,6 +813,7 @@
     /* ── Load Three.js then init sphere ── */
     var s = document.createElement("script");
     s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    s.loading = "lazy";
     s.onload = initSphere;
     s.onerror = function () {
       /* CDN failed — show fallback silently */
@@ -1064,4 +1059,3 @@
   }
 </script>
 {% endblock %}
-

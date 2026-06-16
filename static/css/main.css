@@ -130,3 +130,63 @@
     font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
   }
 }
+
+
+/* ── Mobile responsiveness fixes ── */
+@media (max-width: 767px) {
+  /* Prevent horizontal overflow */
+  body { overflow-x: hidden; }
+
+  /* Navbar logo + text wrapping */
+  .navbar-brand { max-width: 160px; font-size: 0.95rem; }
+
+  /* Landing hero section */
+  .hero-headline { font-size: clamp(2rem, 8vw, 3.5rem) !important; }
+  .hero-subtext { font-size: 0.95rem !important; }
+
+  /* Card grids go single column on small screens */
+  .listings-grid,
+  .services-grid,
+  .rentals-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+  /* Listing detail / profile page */
+  .detail-wrap,
+  .profile-wrap { padding: 0 0.75rem !important; }
+
+  /* Buttons full width on mobile */
+  .btn-gold, .btn-ghost { width: 100%; text-align: center; }
+
+  /* Form inputs proper sizing */
+  input, select, textarea { font-size: 16px !important; } /* Prevents iOS zoom */
+
+  /* Stats pills wrap properly */
+  .stats-row { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Trust/verify page */
+  .trust-page { padding: 1.5rem 1rem !important; }
+
+  /* Message threads */
+  .thread-wrap { padding: 0 0.5rem !important; }
+
+  /* Inbox thread items */
+  .thread-item { padding: 0.75rem 0.5rem; }
+
+  /* Category dropdown stays in viewport */
+  .category-dropdown { max-width: calc(100vw - 1rem); left: 0 !important; }
+
+  /* Profile avatar */
+  .profile-avatar-wrap { width: 72px; height: 72px; }
+
+  /* Trust badge chips don't overflow */
+  .trust-badges { flex-wrap: wrap; }
+}
+
+@media (max-width: 479px) {
+  /* Extra small screens */
+  .detail-wrap { padding: 0 0.5rem !important; }
+  .section-title { font-size: 1.3rem !important; }
+  .card-price { font-size: 1.1rem !important; }
+
+  /* Nav username truncation */
+  .nav-user-btn .username { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

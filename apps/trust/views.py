@@ -116,7 +116,10 @@ def verify_email_otp(request):
             else:
                 request.user.save(update_fields=['is_verified'])
             log_audit(request, 'email_verified_otp', request.user)
-            update_trust_score(request.user, reason='email_verified', actor=request.user, source=request.user)
+            try:
+                update_trust_score(request.user, reason='email_verified', actor=request.user, source=request.user)
+            except Exception:
+                pass  # Never let scoring failure block verification success
             messages.success(request, 'Your university email has been verified.')
             return redirect(_safe_next(request))
         messages.error(request, 'Invalid or expired verification code.')
