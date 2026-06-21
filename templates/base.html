@@ -293,6 +293,20 @@
       font-family: var(--font-body);
     }
 
+    .mobile-theme-row {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0 !important;
+    }
+    .mobile-theme-row span:first-child {
+      font-weight: 600;
+    }
+    .mobile-theme-row span:last-child {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
     /* Unread badge */
     .nav-badge {
       background: #e53e3e;
@@ -680,7 +694,7 @@
          this was the cause of the badge hugging/overflowing the right edge
          on typical Android phones (~412-460px wide). */
       .nav-user-btn {
-        max-width: 100px;
+        max-width: 150px;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -694,9 +708,13 @@
         flex-shrink: 0;
       }
       /* Theme toggle and hamburger must not shrink — keep them tappable */
-      .theme-toggle,
       .mobile-menu-toggle {
         flex-shrink: 0;
+      }
+      /* Theme toggle moves INTO the hamburger panel on mobile to free up
+         width for the username badge — see #mobileThemeRow */
+      .theme-toggle {
+        display: none !important;
       }
     }
 
@@ -704,7 +722,7 @@
       .nav-logo-icon,
       .nav-logo img { width: 38px !important; height: 38px !important; }
       .nav-logo-text { font-size: 1rem; }
-      .nav-user-btn { max-width: 84px; }
+      .nav-user-btn { max-width: 120px; }
       .nav-user-btn .nav-avatar { width: 20px; height: 20px; }
     }
 
@@ -847,6 +865,10 @@
 </nav>
 
 <div class="mobile-nav-panel" id="mobileNavPanel">
+  <button type="button" id="mobileThemeRow" class="mobile-theme-row">
+    <span>Theme</span>
+    <span id="mobileThemeIcon">☀️ Light mode</span>
+  </button>
   <a href="{% url 'marketplace:listing-list' %}">Marketplace</a>
   <a href="{% url 'services:service-list' %}">Services</a>
   <a href="{% url 'rentals:rental-list' %}">Accommodation</a>
@@ -910,19 +932,33 @@
   const html = document.documentElement;
   const toggle = document.getElementById('themeToggle');
   const icon = document.getElementById('themeIcon');
+  const mobileThemeRow = document.getElementById('mobileThemeRow');
+  const mobileThemeIcon = document.getElementById('mobileThemeIcon');
+
+  function applyThemeLabel(theme) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (mobileThemeIcon) {
+      mobileThemeIcon.textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+    }
+  }
 
   // Load saved theme
   const saved = localStorage.getItem('unn-theme') || 'dark';
   html.setAttribute('data-theme', saved);
-  icon.textContent = saved === 'dark' ? '☀️' : '🌙';
+  applyThemeLabel(saved);
 
-  toggle.addEventListener('click', () => {
+  function toggleTheme() {
     const current = html.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('unn-theme', next);
-    icon.textContent = next === 'dark' ? '☀️' : '🌙';
-  });
+    applyThemeLabel(next);
+  }
+
+  toggle.addEventListener('click', toggleTheme);
+  if (mobileThemeRow) {
+    mobileThemeRow.addEventListener('click', toggleTheme);
+  }
 
   (function() {
     var menuToggle = document.getElementById('mobileMenuToggle');
