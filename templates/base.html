@@ -661,7 +661,10 @@
     /* ── Responsive nav (mobile-first breakpoints) ─── */
     .site-nav {
       padding-inline: clamp(0.75rem, 3vw, 2rem);
-      overflow-x: hidden;
+      /* NOTE: do NOT add overflow-x:hidden here — it clips Bootstrap's
+         absolutely-positioned dropdown menu, hiding it entirely.
+         html { overflow-x: hidden } at the top of this file already
+         prevents page-wide horizontal scroll safely. */
     }
 
     @media (max-width: 767px) {
