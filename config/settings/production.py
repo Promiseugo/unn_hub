@@ -91,20 +91,38 @@ else:
 # ─────────────────────────────────────────────
 # EMAIL
 # ─────────────────────────────────────────────
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)  # Must be False when USE_TLS=True
-EMAIL_TIMEOUT = 10  # Seconds before SMTP connection times out (prevents silent hangs)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unitrax.com')
+# ─────────────────────────────────────────────
+# EMAIL — Resend (HTTPS API, not SMTP)
+#
+# Railway blocks outbound SMTP (ports 25/465/587/2525) on Free, Trial,
+# and Hobby plans — see https://docs.railway.com/reference/outbound-networking
+# Gmail/SMTP will time out from inside Railway even with correct credentials.
+# Resend uses HTTPS, which works on every Railway plan.
+#
+# Get a free API key at https://resend.com (3,000 emails/month free).
+# Set RESEND_API_KEY in Railway Variables.
+# ─────────────────────────────────────────────
+RESEND_API_KEY = config('RESEND_API_KEY', default='')
 
-# Sanity check: if email creds are missing, fall back to console so
-# the app doesn't silently fail or 500 — just logs to Railway's stdout
-if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if RESEND_API_KEY:
+    EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+    ANYMAIL = {'RESEND_API_KEY': RESEND_API_KEY}
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='onboarding@resend.dev')
+else:
+    # Fallback: SMTP (works locally / on Railway Pro+ / other hosts).
+    # Auto-falls back to console backend if SMTP creds are also missing,
+    # so the app never silently fails or 500s — just logs to stdout.
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+    EMAIL_TIMEOUT = 10
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@unitrax.com')
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # ─────────────────────────────────────────────
