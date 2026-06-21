@@ -329,6 +329,13 @@
       color: var(--gold);
     }
 
+    .nav-username-text {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
     .nav-avatar {
       width: 24px;
       height: 24px;
@@ -652,24 +659,50 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
     /* ── Responsive nav (mobile-first breakpoints) ─── */
-    .site-nav { padding-inline: clamp(0.75rem, 3vw, 2rem); }
+    .site-nav {
+      padding-inline: clamp(0.75rem, 3vw, 2rem);
+      overflow-x: hidden;
+    }
 
     @media (max-width: 767px) {
       .nav-links { display: none; }
       .nav-logo-sub { display: none; }
       .mobile-menu-toggle { display: flex; }
-      .nav-actions { gap: 0.5rem; }
+      .nav-actions { gap: 0.4rem; flex-shrink: 0; }
       .btn-nav-login { display: none; }
       .btn-nav-register { display: none; }
       .site-footer { padding: 1.5rem clamp(0.75rem, 3vw, 1rem); }
+
+      /* Username button must shrink on ALL mobile widths, not just <419px —
+         this was the cause of the badge hugging/overflowing the right edge
+         on typical Android phones (~412-460px wide). */
+      .nav-user-btn {
+        max-width: 100px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 5px 8px;
+        flex-shrink: 1;
+        min-width: 0;
+      }
+      .nav-user-btn .nav-avatar {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+      /* Theme toggle and hamburger must not shrink — keep them tappable */
+      .theme-toggle,
+      .mobile-menu-toggle {
+        flex-shrink: 0;
+      }
     }
 
     @media (max-width: 419px) {
       .nav-logo-icon,
       .nav-logo img { width: 38px !important; height: 38px !important; }
       .nav-logo-text { font-size: 1rem; }
-      .nav-user-btn { max-width: 112px; overflow: hidden; padding: 5px 8px; }
-      .nav-user-btn .nav-avatar { width: 22px; height: 22px; }
+      .nav-user-btn { max-width: 84px; }
+      .nav-user-btn .nav-avatar { width: 20px; height: 20px; }
     }
 
     @media (min-width: 768px) {
@@ -767,7 +800,7 @@
       <div class="dropdown">
         <button class="nav-user-btn dropdown-toggle" data-bs-toggle="dropdown">
           <div class="nav-avatar">{{ user.username|first|upper }}</div>
-          {{ user.username }}
+          <span class="nav-username-text">{{ user.username }}</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li>
