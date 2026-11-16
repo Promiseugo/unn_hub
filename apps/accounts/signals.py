@@ -20,7 +20,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def save_user_profile(sender, instance, **kwargs):
-    """Keep profile in sync on every user save."""
+def save_user_profile(sender, instance, created, update_fields, **kwargs):
+    """Keep profile in sync on user saves that touch profile-relevant fields."""
+    if created:
+        return  # create_user_profile handles this case
+    # Skip when only last_login (or other non-profile fields) changed — avoids
+    # a full profile overwrite on every login() call.
+    if update_fields is not None and update_fields <= frozenset(['last_login']):
+        return
     if hasattr(instance, 'profile'):
         instance.profile.save()

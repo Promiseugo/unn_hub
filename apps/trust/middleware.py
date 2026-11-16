@@ -18,6 +18,10 @@ class TrustSafetyMiddleware:
         '/accounts/register/',
         '/accounts/signup/',
         '/accounts/verify-email/',
+        '/accounts/google/',        # OAuth initiation + callback
+        '/accounts/social/',        # allauth social account management
+        '/accounts/confirm-email/', # allauth email confirmation pages
+        '/accounts/email/',         # allauth email management
         '/trust/verify-email/',
         '/trust/safety/',
         '/admin/',

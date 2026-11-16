@@ -11,13 +11,16 @@ from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
 from .models import Listing, Category, SubCategory, ListingImage
 from .forms import ListingForm, MultiImageValidator, VideoValidator
+from django.core.cache import cache
 from .utils import deactivate_expired_listings
 from apps.core.upload_utils import secure_video_save, compressed_image_file
 
 def listing_list(request):
     from apps.interactions.utils import with_interaction_counts
 
-    deactivate_expired_listings()
+    if not cache.get('expired_listings_checked'):
+        deactivate_expired_listings()
+        cache.set('expired_listings_checked', True, 3600)
 
     listings = Listing.objects.filter(
         is_active=True,
@@ -323,6 +326,6 @@ def listing_delete(request, pk):
 def listing_mark_sold(request, pk):
     listing = get_object_or_404(Listing, pk=pk, seller=request.user)
     listing.is_sold = True
-    listing.save()
+    listing.save(update_fields=['is_sold', 'updated_at'])
     messages.success(request, f'"{listing.title}" marked as sold.')
     return redirect('accounts:profile', username=request.user.username)

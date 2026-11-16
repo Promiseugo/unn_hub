@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.db.models import Prefetch
 from django.http import JsonResponse
 from django_ratelimit.decorators import ratelimit
 from .models import Thread, Message
@@ -25,22 +27,21 @@ def unread_count(request):
 def inbox(request):
     """Show all threads enriched with other-participant and unread count."""
     threads = request.user.threads.prefetch_related(
-        'participants', 'messages'
+        'participants',
+        Prefetch('messages', queryset=Message.objects.order_by('created_at')),
     ).order_by('-updated_at')
 
-    # Pre-compute other participant and unread count per thread
-    # so templates don't need to call methods with arguments
     thread_data = []
+    user_pk = request.user.pk
     for thread in threads:
-        other = thread.participants.exclude(pk=request.user.pk).first()
-        unread = thread.messages.filter(
-            is_read=False
-        ).exclude(sender=request.user).count()
+        msgs = list(thread.messages.all())
+        other = next((p for p in thread.participants.all() if p.pk != user_pk), None)
+        unread = sum(1 for m in msgs if not m.is_read and m.sender_id != user_pk)
         thread_data.append({
             'thread': thread,
             'other': other,
             'unread': unread,
-            'last_message': thread.messages.last(),
+            'last_message': msgs[-1] if msgs else None,
         })
 
     return render(request, 'messaging/inbox.html', {'thread_data': thread_data})
@@ -55,10 +56,11 @@ def thread_detail(request, pk):
         participants=request.user,
     )
 
-    # Mark messages from others as read
+    # Mark messages from others as read; bust cached unread badge count
     thread.messages.filter(
         is_read=False
     ).exclude(sender=request.user).update(is_read=True)
+    cache.delete(f'unread_count_{request.user.pk}')
 
     other = thread.participants.exclude(pk=request.user.pk).first()
 

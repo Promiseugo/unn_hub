@@ -40,8 +40,11 @@ ALLOWED_TRANSACTION_MODELS = {
 
 
 def _safe_next(request, default='landing'):
+    from django.utils.http import url_has_allowed_host_and_scheme
     value = request.POST.get('next') or request.GET.get('next')
-    return value if value and value.startswith('/') and not value.startswith('//') else reverse(default)
+    if value and url_has_allowed_host_and_scheme(url=value, allowed_hosts={request.get_host()}):
+        return value
+    return reverse(default)
 
 
 def _send_otp(request, user):

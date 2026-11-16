@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -17,8 +16,7 @@ from django.contrib.sessions.models import Session
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
@@ -71,19 +69,6 @@ def _safe_send_user_email(*, request, user, subject_template, body_template, htm
         email.send(fail_silently=False)
     except Exception:
         logger.exception("Failed sending transactional email", extra={'user_id': getattr(user, 'pk', None)})
-
-
-def _send_verification_email(request, user):
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
-    _safe_send_user_email(
-        request=request,
-        user=user,
-        subject_template='accounts/email_verification_subject.txt',
-        body_template='accounts/email_verification.txt',
-        html_template='accounts/email_verification.html',
-        extra_context={'uid': uid, 'token': token},
-    )
 
 
 def _send_verification_otp(request, user):
@@ -232,35 +217,10 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
-def verify_email_view(request, uidb64, token):
-    try:
-        user_id = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=user_id)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        if not user.is_verified:
-            user.is_verified = True
-            if getattr(user, 'trust_tier', 'unverified') == 'unverified':
-                user.trust_tier = 'verified_student'
-                user.save(update_fields=['is_verified', 'trust_tier'])
-            else:
-                user.save(update_fields=['is_verified'])
-            from apps.trust.scoring import update_trust_score
-            update_trust_score(user, reason='email_verified', actor=user, source=user)
-        messages.success(request, "Your email has been verified.")
-    else:
-        messages.error(request, "That verification link is invalid or has expired.")
-    return redirect('accounts:login')
-
-
 def profile_view(request, username):
     from apps.reviews.models import Review
-    from apps.trust.scoring import update_trust_score
 
     profile_user = get_object_or_404(User, username=username)
-    update_trust_score(profile_user)
     listings = profile_user.listings.filter(
         is_active=True,
         is_sold=False,

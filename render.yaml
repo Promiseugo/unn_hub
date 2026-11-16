@@ -1,0 +1,93 @@
+# render.yaml — Render deployment blueprint
+# https://render.com/docs/blueprint-spec
+#
+# HOW TO USE:
+#   1. Push this repo to GitHub (or GitLab / Bitbucket)
+#   2. Go to render.com → New → Blueprint → connect your repo
+#   3. Render will read this file and create the web service
+#   4. Set all vars marked "sync: false" in the Render dashboard
+#      (Environment tab → "Add Environment Variable")
+#
+# BEFORE YOUR FIRST DEPLOY:
+#   a) Replace "unitrax" everywhere below with your chosen Render app name
+#   b) Add https://<your-app>.onrender.com/accounts/google/login/callback/
+#      to Authorized redirect URIs in Google Cloud Console
+#   c) Run a one-off Django shell command to fix the Site record:
+#      python manage.py shell -c
+#        "from django.contrib.sites.models import Site;
+#         Site.objects.filter(pk=2).update(domain='<your-app>.onrender.com', name='UniTraX')"
+#
+# FREE TIER NOTE:
+#   The free plan spins down after 15 minutes of inactivity.
+#   First request after sleep takes ~30-60 s. Acceptable for an MVP.
+#   Upgrade to Starter ($7/mo) to keep the service always-on.
+
+services:
+  - type: web
+    name: unitrax              # ← change to your preferred app name
+    env: python
+    plan: free
+    region: oregon             # options: oregon, ohio, frankfurt, singapore, ohio
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application --workers 2 --threads 2 --worker-class gthread --bind 0.0.0.0:$PORT --timeout 120
+    preDeployCommand: python manage.py migrate --noinput
+
+    envVars:
+      # ── Django core ───────────────────────────────────────────────────
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SITE_NAME
+        value: UniTraX
+      - key: SITE_ID
+        value: "2"
+
+      - key: DJANGO_SECRET_KEY
+        sync: false          # paste your production SECRET_KEY (keep it secret)
+
+      # !! Replace "unitrax" here with your actual Render app name !!
+      - key: ALLOWED_HOSTS
+        value: unitrax.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://unitrax.onrender.com
+
+      # ── Database (Neon — same as before, no change needed) ───────────
+      - key: DATABASE_URL
+        sync: false          # Neon pooled connection string
+      - key: DATABASE_MIGRATE_URL
+        sync: false          # Neon direct (non-pooled) connection string
+
+      # ── Media storage (Cloudinary — same keys as before) ─────────────
+      - key: USE_CLOUDINARY
+        value: "True"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # ── Email (Resend — same API key as before) ───────────────────────
+      - key: RESEND_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false          # e.g. onboarding@resend.dev or noreply@yourdomain.com
+
+      # ── Google OAuth ──────────────────────────────────────────────────
+      - key: SOCIAL_AUTH_GOOGLE_CLIENT_ID
+        sync: false
+      - key: SOCIAL_AUTH_GOOGLE_CLIENT_SECRET
+        sync: false
+
+      # ── Security ──────────────────────────────────────────────────────
+      - key: ADMIN_URL
+        sync: false          # set to something unguessable, e.g. x7k2m9-admin/
+
+      # ── Optional extras (all have sensible defaults) ──────────────────
+      # - key: OFFICIAL_UNIVERSITY_EMAIL_DOMAINS
+      #   value: unn.edu.ng,student.unn.edu.ng
+      # - key: SUPPORT_EMAIL
+      #   value: support@unitrax.com
+      # - key: REDIS_URL
+      #   sync: false        # add a Redis instance on Render for persistent cache
+      # - key: SENTRY_DSN
+      #   sync: false        # optional error monitoring

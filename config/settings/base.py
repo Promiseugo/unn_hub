@@ -421,3 +421,11 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
         'key': '',
         'settings': {'hidden': True},
     }
+
+# --- django-allauth social-account behaviour ---
+# Use our custom adapter: disposable-email guard, auto-connect existing
+# accounts, and instant verification for all Google-authenticated users.
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.UniversityEmailSocialAccountAdapter'
+# Google already verified email ownership — skip allauth's own confirmation.
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_REQUIRED = False

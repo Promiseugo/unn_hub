@@ -174,7 +174,7 @@ def rental_create(request):
     from apps.trust.utils import detect_listing_risk, log_audit, log_suspicious
 
     if request.method == 'POST':
-        form = RentalListingForm(request.POST)
+        form = RentalListingForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded = request.FILES.getlist('images')
             video_upload_disabled = bool(request.FILES.get('video')) and not getattr(settings, 'ENABLE_VIDEO_UPLOADS', False)
@@ -321,7 +321,7 @@ def rental_delete(request, pk):
 def rental_mark_taken(request, pk):
     rental = get_object_or_404(RentalListing, pk=pk, landlord=request.user)
     rental.is_taken = True
-    rental.save()
+    rental.save(update_fields=['is_taken', 'updated_at'])
     messages.success(request, f'"{rental.title}" marked as taken.')
     return redirect('accounts:profile', username=request.user.username)
 

@@ -11,7 +11,6 @@ urlpatterns = [
     path('signin/', views.login_view, name='signin'),
     path('sign-in/', views.login_view, name='sign-in'),
     path('logout/', views.logout_view, name='logout'),
-    path('verify-email/<uidb64>/<token>/', views.verify_email_view, name='verify-email'),
     path('profile/edit/', views.profile_edit_view, name='profile-edit'),
     path('profile/<str:username>/', views.profile_view, name='profile'),
 
