@@ -28,9 +28,8 @@ services:
     env: python
     plan: free
     region: oregon             # options: oregon, ohio, frankfurt, singapore, ohio
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
     startCommand: gunicorn config.wsgi:application --workers 2 --threads 2 --worker-class gthread --bind 0.0.0.0:$PORT --timeout 120
-    preDeployCommand: python manage.py migrate --noinput
 
     envVars:
       # ── Django core ───────────────────────────────────────────────────
