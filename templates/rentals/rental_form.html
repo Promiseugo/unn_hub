@@ -34,6 +34,10 @@
   .tips-list { list-style: none; padding: 0; margin: 0; }
   .tips-list li { font-size: 0.8rem; color: var(--text-muted); padding: 4px 0; display: flex; gap: 8px; }
   .tips-list li::before { content: "→"; color: var(--gold); flex-shrink: 0; }
+  @media (max-width: 479px) {
+    .form-wrap { padding-left: 0 !important; padding-right: 0 !important; }
+    .btn-submit, .btn-cancel { width: 100% !important; text-align: center !important; display: block !important; }
+  }
 </style>
 {% endblock %}
 

@@ -3,6 +3,15 @@
 
 {% block title %}{{ action }} Listing — UniTraX{% endblock %}
 
+{% block extra_css %}
+<style>
+@media (max-width: 479px) {
+  .form-actions { flex-direction: column !important; }
+  .form-actions > * { width: 100% !important; text-align: center !important; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="row justify-content-center">
@@ -144,7 +153,7 @@
           <hr class="my-4">
 
           {# ── Submit Buttons ──────────────────────────────── #}
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 form-actions">
             <button type="submit" style="background:var(--gold);color:#0d0d0d;font-family:var(--font-head);font-weight:700;font-size:0.9rem;padding:11px 28px;border-radius:10px;border:none;cursor:pointer;transition:all 0.2s;">
               {% if action == 'Create' %}Post Listing{% else %}Save Changes{% endif %}
             </button>

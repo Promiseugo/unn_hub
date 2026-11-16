@@ -19,6 +19,10 @@
   .form-control, .form-select { background: var(--bg-elevated) !important; border-color: var(--border) !important; color: var(--text) !important; }
   .form-control:focus, .form-select:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12) !important; background: var(--bg-elevated) !important; }
   label { color: var(--text-muted) !important; font-size: 0.8rem !important; }
+  @media (max-width: 479px) {
+    .edit-wrap { padding-left: 0 !important; padding-right: 0 !important; }
+    .btn-save, .btn-cancel { width: 100% !important; text-align: center !important; display: block !important; }
+  }
 </style>
 {% endblock %}
 

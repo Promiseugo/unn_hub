@@ -16,6 +16,39 @@
     .fs-3 { font-size: 1.45rem !important; overflow-wrap: anywhere; }
     .badge { max-width: 100%; white-space: normal; text-align: left; line-height: 1.35; }
   }
+
+  .svc-mobile-cta { display: none; }
+  @media (max-width: 991px) {
+    .svc-mobile-cta {
+      display: flex;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 0.75rem clamp(0.75rem, 4vw, 2rem);
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      z-index: 90;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.25);
+    }
+    .svc-mobile-cta-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-head);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1px;
+    }
+    .svc-mobile-cta-price {
+      font-family: var(--font-head);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -137,8 +170,26 @@
 </div>
 
 {# Likes, Dislikes & Comments #}
-<div style="margin-top:2rem;">
+<div style="margin-top:2rem;padding-bottom:72px;">
   {% include 'components/interactions.html' with app_label=app_label model_name=model_name object_id=service.pk comments=comments likes=likes dislikes=dislikes user_reaction=user_reaction %}
 </div>
 
+{% if user != service.provider %}
+<div class="svc-mobile-cta">
+  <div>
+    <div class="svc-mobile-cta-label">Price</div>
+    <div class="svc-mobile-cta-price">
+      ₦{{ service.price|floatformat:0 }}
+      <small style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-left:4px;">/ {{ service.price_label }}</small>
+    </div>
+  </div>
+  {% if user.is_authenticated %}
+    <a href="{% url 'messaging:new-thread' service.provider.username %}?subject=Re: {{ service.title|urlencode }}"
+       class="btn btn-success" style="white-space:nowrap;flex-shrink:0;">💬 Contact Provider</a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+       class="btn btn-primary" style="white-space:nowrap;flex-shrink:0;">Login to Contact</a>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}
