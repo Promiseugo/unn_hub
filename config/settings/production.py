@@ -141,10 +141,13 @@ if USE_CLOUDINARY:
         'CLOUD_NAME': _cloud_name,
         'API_KEY':    _api_key,
         'API_SECRET': _api_secret,
+        # PREFIX must be '' so django-cloudinary-storage does not prepend MEDIA_URL
+        # to Cloudinary public_ids. Setting MEDIA_URL to the Cloudinary delivery base
+        # caused the library to double-prepend it, producing broken doubled URLs.
+        'PREFIX': '',
     }
-    STORAGES['default']['BACKEND'] = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES['default']['BACKEND'] = 'apps.core.storage.SmartCloudinaryStorage'
     MEDIA_ROOT = BASE_DIR / 'media'
-    MEDIA_URL = f"https://res.cloudinary.com/{_cloud_name}/image/upload/"
 
 elif USE_S3:
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')

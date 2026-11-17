@@ -563,10 +563,14 @@
       color: var(--text);
       border-radius: var(--radius);
     }
-    .alert-success { border-color: rgba(26,107,60,0.4); background: rgba(26,107,60,0.1); }
-    .alert-danger  { border-color: rgba(229,62,62,0.4); background: rgba(229,62,62,0.1); }
-    .alert-warning { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.1); }
-    .alert-info    { border-color: rgba(66,153,225,0.4); background: rgba(66,153,225,0.1); }
+    .alert-success { border-color: rgba(26,107,60,0.7); background: rgba(10,48,27,0.92); color: #d1fae5; }
+    .alert-danger  { border-color: rgba(229,62,62,0.7); background: rgba(80,15,15,0.92); color: #fee2e2; }
+    .alert-warning { border-color: rgba(201,168,76,0.7); background: rgba(74,54,8,0.92);  color: #fef3c7; }
+    .alert-info    { border-color: rgba(66,153,225,0.7); background: rgba(10,40,80,0.92); color: #dbeafe; }
+    [data-theme="light"] .alert-success { background: rgba(220,252,231,0.97); color: #14532d; }
+    [data-theme="light"] .alert-danger  { background: rgba(254,226,226,0.97); color: #7f1d1d; }
+    [data-theme="light"] .alert-warning { background: rgba(254,243,199,0.97); color: #78350f; }
+    [data-theme="light"] .alert-info    { background: rgba(219,234,254,0.97); color: #1e3a5f; }
 
     /* ── Badges ────────────────────────────────────── */
     .badge {
@@ -885,10 +889,10 @@
 {% if messages %}
   <div class="flash-messages">
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-lg"
-           role="alert" style="margin-bottom:8px;">
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+           role="alert" style="margin-bottom:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
         {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
   </div>

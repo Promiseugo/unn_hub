@@ -45,9 +45,9 @@ services:
 
       # !! Replace "unitrax" here with your actual Render app name !!
       - key: ALLOWED_HOSTS
-        value: unitrax.onrender.com
+        value: unitrax-7a80.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://unitrax.onrender.com
+        value: https://unitrax-7a80.onrender.com
 
       # ── Database (Neon — same as before, no change needed) ───────────
       - key: DATABASE_URL
@@ -80,6 +80,9 @@ services:
       # ── Security ──────────────────────────────────────────────────────
       - key: ADMIN_URL
         sync: false          # set to something unguessable, e.g. x7k2m9-admin/
+
+      - key: ENABLE_VIDEO_UPLOADS
+        value: "True"
 
       # ── Optional extras (all have sensible defaults) ──────────────────
       # - key: OFFICIAL_UNIVERSITY_EMAIL_DOMAINS
